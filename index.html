@@ -184,8 +184,21 @@
   .synth-empty{color:#C9B9BF;font-size:.9rem;font-style:italic;font-family:"Fraunces",serif;}
   .synth-note{margin-top:22px;font-size:.9rem;color:#D8C9CF;line-height:1.6;}
 
+  /* ---------- MÉMOIRE DU PARCOURS ---------- */
+  .synth-card.memoire{margin-top:20px;}
+  .domaines{display:flex;flex-wrap:wrap;gap:9px 20px;margin-bottom:16px;}
+  .domaine{font-size:.86rem;}
+  .domaine .dname{color:#fff;font-weight:600;}
+  .domaine .dstats{color:#C9B9BF;margin-left:5px;}
+  .journal{display:flex;flex-direction:column;}
+  .journal-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);}
+  .journal-item:last-child{border-bottom:0;}
+  .journal-item .jmeta{font-size:.76rem;color:#C9B9BF;margin-bottom:3px;}
+  .journal-item .jphrase{font-family:"Fraunces",serif;font-style:italic;font-size:.98rem;color:#fff;}
+
   /* ---------- CONTROLS ---------- */
   .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:30px 0 12px;}
+  .savedat{font-size:.82rem;color:var(--mist);}
   .btn{
     font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;
     padding:11px 20px;border-radius:99px;border:1px solid var(--ink);
@@ -225,6 +238,9 @@
     .synth .sub,.synth-note{color:var(--mist);}
     .synth-card{background:#fff;border-color:var(--line);}
     .synth-card h3,.synth-item{color:var(--ink);}
+    .dname,.jphrase{color:var(--ink)!important;}
+    .dstats,.jmeta{color:var(--mist)!important;}
+    .journal-item{border-color:var(--line);}
     .field textarea,.field input{background:#fff;}
   }
 </style>
@@ -273,6 +289,12 @@
       </div>
     </div>
     <p class="synth-note" id="synth-note"></p>
+
+    <div class="synth-card memoire">
+      <h3>Ta <span>mémoire</span> du parcours</h3>
+      <div class="domaines" id="memoire-domaines"></div>
+      <div class="journal" id="memoire-journal"></div>
+    </div>
   </section>
 
   <div class="controls no-print">
@@ -284,6 +306,7 @@
     <button class="btn ghost" id="expand">Tout déplier</button>
     <button class="btn quiet" id="reset">Effacer mes notes</button>
     <span class="saved" id="saved">Enregistré</span>
+    <span class="savedat" id="savedat"></span>
   </div>
 
   <footer>
@@ -431,6 +454,15 @@ async function saveStore(){
   const okLS=lsSet(JSON.stringify(store));
   persistOK = okIDB || okLS;
   updatePersistNotice();
+  if(persistOK) updateSavedAt();
+}
+function updateSavedAt(){
+  const el=document.getElementById("savedat");
+  if(!el) return;
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,"0");
+  const mm=String(now.getMinutes()).padStart(2,"0");
+  el.textContent="Dernière sauvegarde à "+hh+":"+mm;
 }
 function testPersist(){
   let okLS=false;
@@ -626,6 +658,7 @@ function updateStats(){
   document.getElementById("s-aisance").textContent=aVals.length?avg(aVals):"—";
 
   renderSynth();
+  renderMemoire();
 }
 function avg(arr){ return (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1); }
 
@@ -649,6 +682,36 @@ function renderSynth(){
   } else {
     note.textContent="Quand une même journée grimpe haut en énergie ET en aisance, note-la : c'est là que se cache un talent, parfois là où tu ne l'attendais pas.";
   }
+}
+
+/* mémoire auto : synthèse par domaine + journal chronologique des "à retenir", sans rien resaisir */
+function renderMemoire(){
+  const items=allItems();
+
+  const domaines={};
+  items.forEach(it=>{
+    const e=entry(it.id);
+    if(e.energie>0 || e.aisance>0){
+      const d=domaines[it.focus]||(domaines[it.focus]={eSum:0,eN:0,aSum:0,aN:0});
+      if(e.energie>0){ d.eSum+=e.energie; d.eN++; }
+      if(e.aisance>0){ d.aSum+=e.aisance; d.aN++; }
+    }
+  });
+  const domList=Object.keys(domaines).map(name=>{
+    const d=domaines[name];
+    const eAvg=d.eN?(d.eSum/d.eN).toFixed(1):null;
+    const aAvg=d.aN?(d.aSum/d.aN).toFixed(1):null;
+    return {name, eAvg, aAvg, score:parseFloat(eAvg||0)+parseFloat(aAvg||0)};
+  }).sort((a,b)=>b.score-a.score);
+
+  document.getElementById("memoire-domaines").innerHTML = domList.length
+    ? domList.map(d=>`<span class="domaine"><span class="dname">${d.name}</span><span class="dstats">${d.eAvg?`énergie ${d.eAvg}`:""}${d.eAvg&&d.aAvg?" · ":""}${d.aAvg?`aisance ${d.aAvg}`:""}</span></span>`).join("")
+    : `<p class="synth-empty">Renseigne quelques jauges et tes domaines se dessineront ici.</p>`;
+
+  const journal=items.filter(it=>entry(it.id).retenir && entry(it.id).retenir.trim());
+  document.getElementById("memoire-journal").innerHTML = journal.length
+    ? journal.map(it=>`<div class="journal-item"><div class="jmeta">${it.date} — ${it.title}</div><div class="jphrase">${esc(entry(it.id).retenir)}</div></div>`).join("")
+    : `<p class="synth-empty">Chaque « à retenir » que tu notes viendra s'ajouter ici, au fil des jours.</p>`;
 }
 
 /* ---------- controls ---------- */
