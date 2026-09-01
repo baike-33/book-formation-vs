@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta id="seed-data" content="">
+<title>Mon Book de Formation — POEI Victoria's Secret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --porcelain:#FBF7F5;
+    --surface:#FFFFFF;
+    --ink:#241A20;
+    --rose:#A63A5B;
+    --rose-soft:#F6E4EA;
+    --gold:#A9855B;
+    --gold-soft:#F2E7D8;
+    --mist:#8C7E85;
+    --line:#ECE0E4;
+    --line-strong:#DFCED4;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--porcelain);
+    color:var(--ink);
+    font-family:"Instrument Sans",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:940px;margin:0 auto;padding:0 22px;}
+
+  /* ---------- HERO ---------- */
+  header.hero{padding:64px 0 30px;}
+  .hero .kicker{
+    font-size:.82rem;letter-spacing:.01em;color:var(--rose);
+    font-weight:600;margin:0 0 18px;
+  }
+  .hero h1{
+    font-family:"Fraunces",serif;
+    font-weight:500;
+    font-size:clamp(2.7rem,7vw,4.6rem);
+    line-height:1.02;
+    letter-spacing:-.015em;
+    margin:0 0 20px;
+    max-width:14ch;
+  }
+  .hero .who{
+    font-size:1.05rem;color:var(--ink);margin:0 0 6px;font-weight:500;
+  }
+  .hero .intent{
+    font-family:"Fraunces",serif;font-style:italic;
+    font-size:1.15rem;color:var(--mist);margin:14px 0 0;max-width:52ch;
+  }
+  .rule{height:1px;background:var(--line-strong);border:0;margin:34px 0;}
+
+  /* ---------- DASHBOARD ---------- */
+  .board{
+    display:flex;flex-wrap:wrap;gap:14px 34px;align-items:flex-end;
+    padding:4px 0 6px;
+  }
+  .stat .n{font-family:"Fraunces",serif;font-size:2.1rem;font-weight:500;line-height:1;}
+  .stat .n small{font-size:1rem;color:var(--mist);font-weight:400;}
+  .stat .l{font-size:.82rem;color:var(--mist);margin-top:5px;}
+  .stat.energie .n{color:var(--rose);}
+  .stat.aisance .n{color:var(--ink);}
+  .progress-wrap{flex:1 1 200px;min-width:180px;}
+  .progress-track{height:7px;background:var(--line);border-radius:99px;overflow:hidden;}
+  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--rose),#C86A85);border-radius:99px;transition:width .5s cubic-bezier(.2,.7,.2,1);}
+
+  /* ---------- NOTICE ---------- */
+  .notice{
+    display:flex;gap:11px;align-items:flex-start;margin:22px 0 0;
+    background:var(--gold-soft);border:1px solid #E4D2B8;border-radius:16px;
+    padding:14px 16px;font-size:.9rem;color:#6E5836;line-height:1.5;
+  }
+  .notice svg{flex:0 0 auto;margin-top:1px;color:var(--gold);}
+  .notice b{color:#5A4526;font-weight:600;}
+
+  /* ---------- FILTERS ---------- */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 8px;}
+  .chip{
+    font:inherit;font-size:.86rem;font-weight:500;
+    border:1px solid var(--line-strong);background:transparent;color:var(--ink);
+    padding:7px 15px;border-radius:99px;cursor:pointer;transition:background .18s,color .18s,border-color .18s;
+  }
+  .chip:hover{border-color:var(--rose);}
+  .chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  /* ---------- WEEKS & DAYS ---------- */
+  .week{margin-top:34px;}
+  .week-label{
+    font-size:.8rem;color:var(--mist);font-weight:600;
+    margin:0 0 12px;padding-left:2px;
+  }
+  .day{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:20px;margin-bottom:12px;overflow:hidden;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .day:hover{border-color:var(--line-strong);}
+  .day.open{border-color:var(--rose);box-shadow:0 14px 34px -22px rgba(166,58,91,.4);}
+  .day.hidden{display:none;}
+  .day-head{
+    display:flex;align-items:center;gap:16px;width:100%;
+    text-align:left;background:none;border:0;font:inherit;color:inherit;
+    padding:17px 20px;cursor:pointer;
+  }
+  .daynum{
+    flex:0 0 auto;font-family:"Fraunces",serif;font-size:1.15rem;
+    color:var(--mist);min-width:34px;font-weight:500;
+  }
+  .day.done .daynum{color:var(--rose);}
+  .day-main{flex:1 1 auto;min-width:0;}
+  .day-title{font-size:1.06rem;font-weight:600;line-height:1.25;}
+  .day-meta{font-size:.82rem;color:var(--mist);margin-top:2px;}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;}
+  .badge{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:99px;}
+  .badge.focus{background:var(--porcelain);color:var(--mist);border:1px solid var(--line);}
+  .badge.socle{background:var(--rose-soft);color:var(--rose);}
+  .badge.vm{background:var(--gold-soft);color:var(--gold);}
+  .badge.reveal{background:#EEE9F0;color:#6E5A78;}
+  .chev{flex:0 0 auto;color:var(--mist);transition:transform .3s ease;}
+  .day.open .chev{transform:rotate(180deg);color:var(--rose);}
+  .filledmark{flex:0 0 auto;width:8px;height:8px;border-radius:99px;background:var(--rose);opacity:0;transition:opacity .2s;}
+  .day.done .filledmark{opacity:1;}
+
+  .day-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .34s ease;}
+  .day-body-inner{overflow:hidden;}
+  .day.open .day-body{grid-template-rows:1fr;}
+  .body-pad{padding:2px 20px 22px;border-top:1px solid var(--line);}
+
+  .piste{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--porcelain);border-radius:14px;padding:12px 15px;margin:16px 0 20px;
+    font-size:.92rem;color:var(--ink);
+  }
+  .piste b{color:var(--rose);font-weight:600;}
+  .piste svg{flex:0 0 auto;margin-top:2px;color:var(--rose);}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:.86rem;font-weight:600;margin-bottom:6px;}
+  .field textarea,.field input{
+    width:100%;font:inherit;font-size:.95rem;color:var(--ink);
+    background:var(--porcelain);border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;resize:vertical;transition:border-color .18s,background .18s;
+  }
+  .field textarea{min-height:74px;line-height:1.5;}
+  .field textarea:focus,.field input:focus{outline:none;border-color:var(--rose);background:#fff;}
+  .field textarea::placeholder,.field input::placeholder{color:#B8ABB0;}
+
+  .meters{display:flex;flex-wrap:wrap;gap:26px;margin-top:6px;}
+  .meter .mlabel{font-size:.86rem;font-weight:600;margin-bottom:7px;}
+  .dots{display:flex;gap:7px;}
+  .dot{
+    width:22px;height:22px;border-radius:99px;border:1.5px solid var(--line-strong);
+    background:transparent;cursor:pointer;padding:0;transition:transform .12s,background .15s,border-color .15s;
+  }
+  .dot:hover{transform:scale(1.12);}
+  .meter.energie .dot.on{background:var(--rose);border-color:var(--rose);}
+  .meter.aisance .dot.on{background:var(--ink);border-color:var(--ink);}
+  .mhint{font-size:.76rem;color:var(--mist);margin-top:6px;}
+
+  /* ---------- SYNTHESIS ---------- */
+  .synth{
+    margin:52px 0 20px;background:var(--ink);color:#fff;border-radius:26px;padding:38px 32px;
+  }
+  .synth h2{font-family:"Fraunces",serif;font-weight:500;font-size:1.9rem;margin:0 0 6px;letter-spacing:-.01em;}
+  .synth .sub{color:#C9B9BF;font-size:.95rem;margin:0 0 26px;max-width:56ch;}
+  .synth-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:620px){.synth-grid{grid-template-columns:1fr;}}
+  .synth-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:20px;}
+  .synth-card h3{font-size:.9rem;font-weight:600;margin:0 0 12px;color:#fff;}
+  .synth-card h3 span{color:#E7A9BC;}
+  .synth-card.aisance h3 span{color:#D9C29E;}
+  .synth-item{display:flex;justify-content:space-between;gap:12px;font-size:.92rem;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08);}
+  .synth-item:last-child{border-bottom:0;}
+  .synth-item .v{color:#E7A9BC;font-family:"Fraunces",serif;font-weight:500;}
+  .synth-card.aisance .synth-item .v{color:#D9C29E;}
+  .synth-empty{color:#C9B9BF;font-size:.9rem;font-style:italic;font-family:"Fraunces",serif;}
+  .synth-note{margin-top:22px;font-size:.9rem;color:#D8C9CF;line-height:1.6;}
+
+  /* ---------- CONTROLS ---------- */
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:30px 0 12px;}
+  .btn{
+    font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;
+    padding:11px 20px;border-radius:99px;border:1px solid var(--ink);
+    background:var(--ink);color:#fff;transition:opacity .18s,background .18s;
+  }
+  .btn:hover{opacity:.88;}
+  .btn.ghost{background:transparent;color:var(--ink);}
+  .btn.ghost:hover{background:var(--porcelain);}
+  .btn.quiet{background:transparent;border-color:var(--line-strong);color:var(--mist);font-weight:500;}
+  .btn.quiet:hover{color:var(--rose);border-color:var(--rose);}
+  .saved{font-size:.82rem;color:var(--mist);opacity:0;transition:opacity .3s;}
+  .saved.show{opacity:1;}
+
+  footer{padding:26px 0 70px;color:var(--mist);font-size:.86rem;}
+  footer .fr{font-family:"Fraunces",serif;font-style:italic;color:var(--ink);font-size:1.05rem;}
+
+  /* ---------- LOAD ANIMATION (single orchestrated moment) ---------- */
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  .reveal{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards;}
+  .reveal.d1{animation-delay:.05s;}
+  .reveal.d2{animation-delay:.16s;}
+  .reveal.d3{animation-delay:.27s;}
+  .reveal.d4{animation-delay:.38s;}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;}
+    .reveal{opacity:1;}
+  }
+
+  /* ---------- PRINT ---------- */
+  @media print{
+    body{background:#fff;}
+    .filters,.controls,.chev,.saved,.no-print{display:none!important;}
+    .day-body{grid-template-rows:1fr!important;}
+    .day{break-inside:avoid;box-shadow:none!important;border-color:var(--line)!important;}
+    .synth{background:#fff;color:var(--ink);border:1px solid var(--line);}
+    .synth .sub,.synth-note{color:var(--mist);}
+    .synth-card{background:#fff;border-color:var(--line);}
+    .synth-card h3,.synth-item{color:var(--ink);}
+    .field textarea,.field input{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="kicker reveal d1">Programme POEI — Victoria's Secret, Montpellier</p>
+    <h1 class="reveal d2">Mon book de formation</h1>
+    <p class="who reveal d3">Karen Delor — du 31 août au 15 octobre 2026</p>
+    <p class="intent reveal d3">Excellente partout, pour avoir le choix. Le VM en ligne de mire, sans me fermer aucune porte.</p>
+
+    <hr class="rule reveal d4" />
+
+    <div class="board reveal d4">
+      <div class="stat"><div class="n" id="s-done">0<small> / 31 étapes</small></div><div class="l">documentées</div></div>
+      <div class="stat energie"><div class="n" id="s-energie">—</div><div class="l">énergie moyenne</div></div>
+      <div class="stat aisance"><div class="n" id="s-aisance">—</div><div class="l">aisance moyenne</div></div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="notice no-print" id="persist-notice" style="display:none">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.3 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0z"/></svg>
+    <span>Ce navigateur n'enregistre pas automatiquement ici (souvent en navigation privée, ou selon l'appareil). Clique sur <b>« Sauvegarder mes notes »</b> pour garder un fichier, et <b>« Importer »</b> pour les recharger à la prochaine ouverture.</span>
+  </div>
+
+  <nav class="filters" id="filters" aria-label="Filtrer par domaine"></nav>
+
+  <main id="plan"></main>
+
+  <section class="synth" id="synth">
+    <h2>Ce qui se révèle</h2>
+    <p class="sub">Se remplit tout seul au fil de tes curseurs. À la clôture, tu arrives avec des observations concrètes plutôt qu'un ressenti flou — c'est ça qui te protège des œillères.</p>
+    <div class="synth-grid">
+      <div class="synth-card energie">
+        <h3>Là où tu <span>vibres</span> le plus</h3>
+        <div id="top-energie"></div>
+      </div>
+      <div class="synth-card aisance">
+        <h3>Là où tu es la plus <span>à l'aise</span></h3>
+        <div id="top-aisance"></div>
+      </div>
+    </div>
+    <p class="synth-note" id="synth-note"></p>
+  </section>
+
+  <div class="controls no-print">
+    <button class="btn" id="exportbook">Exporter mon book</button>
+    <button class="btn" id="print">Imprimer mon book</button>
+    <button class="btn ghost" id="export">Sauvegarder mes notes (fichier)</button>
+    <button class="btn ghost" id="importbtn">Importer une sauvegarde</button>
+    <input type="file" id="importfile" accept="application/json,.json" style="display:none" />
+    <button class="btn ghost" id="expand">Tout déplier</button>
+    <button class="btn quiet" id="reset">Effacer mes notes</button>
+    <span class="saved" id="saved">Enregistré</span>
+  </div>
+
+  <footer>
+    <p class="fr">Un module à la fois. Tu construis ton socle.</p>
+    <p>Tes notes sont sauvegardées automatiquement dans ce book, sur cet appareil.</p>
+  </footer>
+
+</div>
+
+<script>
+const PLAN = [
+ {week:"Semaine 1 — 31 août au 4 sept", items:[
+   {id:1, date:"Lundi 31 août", title:"Lancement", focus:"Cadre", tag:null, piste:"Note le cadre, les attentes, les règles du jeu. C'est ta ligne de départ."},
+   {id:2, date:"Mardi 1 sept", title:"Vente — Jour 1", focus:"Vente", tag:"socle", piste:"Le socle du métier. Un excellent VM sait vendre : vise l'excellence dès ici."},
+   {id:3, date:"Mercredi 2 sept", title:"Vente — Jour 2", focus:"Vente", tag:"socle", piste:"Repère LA technique qui a fait mouche aujourd'hui, et pourquoi."},
+   {id:4, date:"Jeudi 3 sept", title:"Suivi vente & visite concurrentielle", focus:"Vente", tag:"socle", piste:"En visite concu, observe aussi le VM des autres : qu'est-ce qui donne envie d'entrer ?"},
+   {id:5, date:"Vendredi 4 sept", title:"Anglais — 1", focus:"Anglais", tag:null, piste:"Le vocabulaire client et produit en anglais te resservira en boutique."},
+ ]},
+ {week:"Semaine 2 — 7 au 11 sept", items:[
+   {id:6, date:"Lundi 7 sept", title:"Textile", focus:"Produit", tag:null, piste:"Connaître la matière qu'on met en scène : la base d'un bon VM."},
+   {id:7, date:"Mardi 8 sept", title:"Soldes — Jour 1", focus:"Vente", tag:"socle", piste:"La logique des temps forts commerciaux, en lien direct avec le réagencement."},
+   {id:8, date:"Mercredi 9 sept", title:"Soldes — Jour 2", focus:"Vente", tag:"socle", piste:"Comment l'implantation du magasin change-t-elle en période de soldes ?"},
+   {id:9, date:"Jeudi 10 sept", title:"Morpho", focus:"Produit", tag:null, piste:"La morpho nourrit le conseil ET la présentation produit."},
+   {id:10, date:"Vendredi 11 sept", title:"Anglais — 2", focus:"Anglais", tag:null, piste:""},
+ ]},
+ {week:"Semaine 3 — 14 au 18 sept", items:[
+   {id:11, date:"Lundi 14 sept", title:"Gestion du stress", focus:"Posture", tag:null, piste:"Gérer la pression du terrain : une compétence utile partout."},
+   {id:12, date:"Mardi 15 sept", title:"Suivi", focus:"Vente", tag:"socle", piste:""},
+   {id:13, date:"Mercredi 16 sept", title:"Geste & posture", focus:"Posture", tag:null, piste:""},
+   {id:14, date:"Jeudi 17 sept", title:"HBDI", focus:"Posture", tag:"reveal", piste:"Le module qui cartographie ta façon de penser. Écoute-le sans a priori : il peut confirmer le VM… ou révéler un autre talent."},
+   {id:15, date:"Vendredi 18 sept", title:"Gestion des conflits", focus:"Posture", tag:null, piste:""},
+ ]},
+ {week:"Semaine 4 — 21 au 25 sept", items:[
+   {id:16, date:"Lundi 21 sept", title:"KPI's & planche de style", focus:"VM", tag:"vm", piste:"Ton temps fort. Planche de style = le cœur créatif, KPI = la logique commerciale. Les deux choses que tu adores, réunies. Investis-toi à fond : c'est ta vitrine."},
+   {id:17, date:"Mardi 22 sept", title:"Anglais — 3", focus:"Anglais", tag:null, piste:""},
+   {id:18, date:"Mercredi 23 sept", title:"LP", focus:"Vente", tag:"socle", piste:""},
+   {id:19, date:"Jeudi 24 sept", title:"EI", focus:"Vente", tag:"socle", piste:""},
+   {id:20, date:"Vendredi 25 sept", title:"Suivi vente", focus:"Vente", tag:"socle", piste:""},
+ ]},
+ {week:"Semaine 5 — 28 sept au 2 oct", items:[
+   {id:21, date:"Lundi 28 sept", title:"Fragrance", focus:"Produit", tag:null, piste:"Univers produit et storytelling olfactif : de la matière à mise en scène."},
+   {id:22, date:"Mardi 29 sept", title:"Anglais — 4", focus:"Anglais", tag:null, piste:""},
+   {id:23, date:"Mercredi 30 sept", title:"Suivi", focus:"Vente", tag:"socle", piste:""},
+   {id:24, date:"Jeudi 1 oct", title:"Merchandising", focus:"VM", tag:"vm", piste:"Le module VM par excellence. Pose des questions précises : plans d'implantation, temps forts, mise en scène produit."},
+   {id:25, date:"Vendredi 2 oct", title:"Phoning", focus:"Vente", tag:"socle", piste:""},
+ ]},
+ {week:"Semaine 6 — 5 au 10 oct", items:[
+   {id:26, date:"Lundi 5 oct", title:"Préparation du stage (voyage)", focus:"Stage", tag:null, piste:"Arrive avec tes questions prêtes : la semaine en boutique est courte."},
+   {id:"stage", date:"Mardi 6 au samedi 10 oct", title:"Stage en boutique", focus:"Stage", tag:"reveal", piste:"Nice / Lyon / Toulouse / Marseille (à confirmer). Ton terrain d'observation : décode pourquoi tel produit est à hauteur des yeux, telle table à l'entrée."},
+ ]},
+ {week:"Semaine 7 — 12 au 15 oct", items:[
+   {id:27, date:"Lundi 12 oct", title:"Écologie", focus:"Posture", tag:null, piste:""},
+   {id:28, date:"Mardi 13 oct", title:"Interculturel", focus:"Posture", tag:null, piste:""},
+   {id:29, date:"Mercredi 14 oct", title:"Interculturel", focus:"Posture", tag:null, piste:""},
+   {id:30, date:"Jeudi 15 oct", title:"Clôture", focus:"Bilan", tag:null, piste:"Le moment où les préférences se discutent vraiment. Arrive avec tes observations concrètes."},
+ ]},
+];
+
+const BADGE_LABEL = {socle:"Socle vente", vm:"Temps fort VM", reveal:"À écouter sans œillères"};
+const FILTERS = ["Tout","Vente","VM","Produit","Posture","Anglais","Stage"];
+
+/* copie du gabarit tel que chargé, avant tout rendu — sert de base au fichier exporté */
+const PRISTINE_HTML = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+let store = {};
+let saveTimer = null;
+
+/* ---------- stockage local fiable : IndexedDB en principal, localStorage en secours ---------- */
+const DB_NAME = "vs_book_db";
+const DB_STORE = "kv";
+const DB_KEY = "notes";
+const LS_KEY = "vs_book_v1";
+let idb = null;
+let persistOK = true;
+
+function openIDB(){
+  return new Promise(resolve=>{
+    if(!window.indexedDB){ resolve(null); return; }
+    try{
+      const req=indexedDB.open(DB_NAME,1);
+      req.onupgradeneeded=()=>{ req.result.createObjectStore(DB_STORE); };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>resolve(null);
+    }catch(e){ resolve(null); }
+  });
+}
+function idbGet(){
+  return new Promise(resolve=>{
+    if(!idb){ resolve(null); return; }
+    try{
+      const tx=idb.transaction(DB_STORE,"readonly");
+      const rq=tx.objectStore(DB_STORE).get(DB_KEY);
+      rq.onsuccess=()=>resolve(rq.result||null);
+      rq.onerror=()=>resolve(null);
+    }catch(e){ resolve(null); }
+  });
+}
+function idbPut(value){
+  return new Promise(resolve=>{
+    if(!idb){ resolve(false); return; }
+    try{
+      const tx=idb.transaction(DB_STORE,"readwrite");
+      tx.objectStore(DB_STORE).put(value,DB_KEY);
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=()=>resolve(false);
+    }catch(e){ resolve(false); }
+  });
+}
+function idbClear(){
+  return new Promise(resolve=>{
+    if(!idb){ resolve(); return; }
+    try{
+      const tx=idb.transaction(DB_STORE,"readwrite");
+      tx.objectStore(DB_STORE).delete(DB_KEY);
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>resolve();
+    }catch(e){ resolve(); }
+  });
+}
+function lsGet(){ try{ return window.localStorage.getItem(LS_KEY); }catch(e){ return null; } }
+function lsSet(v){ try{ window.localStorage.setItem(LS_KEY,v); return true; }catch(e){ return false; } }
+function lsRemove(){ try{ window.localStorage.removeItem(LS_KEY); }catch(e){} }
+
+/* notes déjà intégrées dans un book exporté (meta seed-data), utilisées si rien n'est encore stocké ici */
+function readSeed(){
+  const meta=document.getElementById("seed-data");
+  const b64=meta&&meta.getAttribute("content");
+  if(!b64) return null;
+  try{
+    const data=JSON.parse(decodeURIComponent(escape(atob(b64))));
+    return (data&&typeof data==="object")?data:null;
+  }catch(e){ return null; }
+}
+
+async function loadStore(){
+  idb=await openIDB();
+  const fromIDB=await idbGet();
+  if(fromIDB && typeof fromIDB==="object"){ store=fromIDB; return; }
+  const raw=lsGet();
+  if(raw){ try{ store=JSON.parse(raw); return; }catch(e){} }
+  store = readSeed() || {};
+}
+async function saveStore(){
+  const okIDB=await idbPut(store);
+  const okLS=lsSet(JSON.stringify(store));
+  persistOK = okIDB || okLS;
+  updatePersistNotice();
+}
+function testPersist(){
+  let okLS=false;
+  try{ window.localStorage.setItem("__vsprobe__","1"); window.localStorage.removeItem("__vsprobe__"); okLS=true; }catch(e){}
+  persistOK = !!idb || okLS;
+  updatePersistNotice();
+}
+function updatePersistNotice(){
+  const n=document.getElementById("persist-notice");
+  if(n) n.style.display = persistOK ? "none" : "flex";
+}
+
+/* ---------- export d'un book HTML autonome, notes intégrées ---------- */
+function buildStandaloneHTML(){
+  const json=JSON.stringify(store);
+  const b64=btoa(unescape(encodeURIComponent(json)));
+  return PRISTINE_HTML.replace(
+    /<meta id="seed-data" content="[^"]*">/,
+    `<meta id="seed-data" content="${b64}">`
+  );
+}
+function exportStandaloneBook(){
+  const blob=new Blob([buildStandaloneHTML()],{type:"text/html"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="mon-book-formation-vs-"+new Date().toISOString().slice(0,10)+".html";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+/* ---------- sauvegarde / import par fichier ---------- */
+function exportBackup(){
+  const blob=new Blob([JSON.stringify(store,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="sauvegarde-book-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function importBackup(file){
+  const r=new FileReader();
+  r.onload=async()=>{
+    let data;
+    try{ data=JSON.parse(r.result); }catch(e){ alert("Ce fichier n'est pas une sauvegarde valide du book."); return; }
+    if(typeof data!=="object"||data===null){ alert("Ce fichier n'est pas une sauvegarde valide du book."); return; }
+    store=Object.assign({},store,data);
+    await saveStore(); render();
+    alert("Sauvegarde importée. Tes notes sont de retour.");
+  };
+  r.readAsText(file);
+}
+function flagSaved(){
+  const el=document.getElementById("saved");
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove("show"),1400);
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{ await saveStore(); flagSaved(); },450);
+}
+async function flushSave(){ clearTimeout(saveTimer); await saveStore(); flagSaved(); }
+
+function entry(id){ if(!store[id]) store[id]={appris:"",exos:"",perso:"",retenir:"",energie:0,aisance:0}; return store[id]; }
+function isDone(id){ const e=store[id]; if(!e) return false; return !!(e.appris||e.exos||e.perso||e.retenir||e.energie||e.aisance); }
+
+/* ---------- render ---------- */
+function render(){
+  renderFilters();
+  const plan=document.getElementById("plan");
+  plan.innerHTML="";
+  PLAN.forEach(wk=>{
+    const sec=document.createElement("section");
+    sec.className="week";
+    sec.innerHTML=`<p class="week-label">${wk.week}</p>`;
+    wk.items.forEach(it=>sec.appendChild(dayNode(it)));
+    plan.appendChild(sec);
+  });
+  updateStats();
+}
+
+function renderFilters(){
+  const f=document.getElementById("filters");
+  f.innerHTML="";
+  FILTERS.forEach((name,i)=>{
+    const b=document.createElement("button");
+    b.className="chip";b.textContent=name;
+    b.setAttribute("aria-pressed", i===0?"true":"false");
+    b.onclick=()=>{
+      [...f.children].forEach(c=>c.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+      applyFilter(name);
+    };
+    f.appendChild(b);
+  });
+}
+function applyFilter(name){
+  document.querySelectorAll(".day").forEach(d=>{
+    const focus=d.dataset.focus;
+    d.classList.toggle("hidden", name!=="Tout" && focus!==name);
+  });
+}
+
+function dayNode(it){
+  const e=entry(it.id);
+  const el=document.createElement("article");
+  el.className="day"+(isDone(it.id)?" done":"");
+  el.dataset.focus=it.focus;
+  el.dataset.id=it.id;
+
+  const badges=[`<span class="badge focus">${it.focus}</span>`];
+  if(it.tag) badges.push(`<span class="badge ${it.tag}">${BADGE_LABEL[it.tag]}</span>`);
+
+  el.innerHTML=`
+    <button class="day-head" aria-expanded="false">
+      <span class="daynum">${it.id==="stage"?"★":it.id}</span>
+      <span class="day-main">
+        <span class="day-title">${it.title}</span>
+        <span class="day-meta">${it.date}</span>
+        <span class="badges">${badges.join("")}</span>
+      </span>
+      <span class="filledmark" title="Documentée"></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="day-body"><div class="day-body-inner"><div class="body-pad">
+      ${it.piste?`<div class="piste"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0-4 10.5c.5.5 1 1.2 1 2V17h6v-1.5c0-.8.5-1.5 1-2A6 6 0 0 0 12 3z"/><path d="M9 21h6"/></svg><span><b>Piste du jour.</b> ${it.piste}</span></div>`:""}
+      <div class="field"><label>Ce que j'ai appris</label><textarea data-f="appris" placeholder="Les notions clés, au propre.">${esc(e.appris)}</textarea></div>
+      <div class="field"><label>Exercices & mises en situation</label><textarea data-f="exos" placeholder="Ce qu'on a pratiqué, les jeux de rôle, ce qui a marché ou coincé.">${esc(e.exos)}</textarea></div>
+      <div class="field"><label>Mes recherches perso approfondies</label><textarea data-f="perso" placeholder="Ce que tu es allée creuser toi-même après la journée.">${esc(e.perso)}</textarea></div>
+      <div class="field"><label>À retenir en une phrase</label><input data-f="retenir" placeholder="Ton pense-bête du jour." value="${esc(e.retenir)}" /></div>
+      <div class="meters">
+        <div class="meter energie" data-m="energie">
+          <div class="mlabel">Énergie — est-ce que ça m'a donné envie ?</div>
+          <div class="dots">${dots()}</div>
+          <div class="mhint">1 = plat · 5 = j'ai adoré</div>
+        </div>
+        <div class="meter aisance" data-m="aisance">
+          <div class="mlabel">Aisance — étais-je douée sans forcer ?</div>
+          <div class="dots">${dots()}</div>
+          <div class="mhint">1 = laborieux · 5 = fluide</div>
+        </div>
+      </div>
+    </div></div></div>`;
+
+  // toggle
+  const head=el.querySelector(".day-head");
+  head.onclick=()=>{
+    const open=el.classList.toggle("open");
+    head.setAttribute("aria-expanded", open?"true":"false");
+  };
+  // text inputs
+  el.querySelectorAll("[data-f]").forEach(inp=>{
+    inp.addEventListener("input",()=>{
+      entry(it.id)[inp.dataset.f]=inp.value;
+      refreshDone(el,it.id);scheduleSave();updateStats();
+    });
+    inp.addEventListener("blur",()=>{ flushSave(); });
+  });
+  // dot meters
+  el.querySelectorAll(".meter").forEach(m=>{
+    const key=m.dataset.m;
+    const ds=[...m.querySelectorAll(".dot")];
+    const paint=v=>ds.forEach((d,i)=>d.classList.toggle("on",i<v));
+    paint(entry(it.id)[key]);
+    ds.forEach((d,i)=>{
+      d.setAttribute("aria-label",(i+1)+"/5");
+      d.onclick=()=>{
+        const cur=entry(it.id)[key];
+        const v=(cur===i+1)?0:i+1; // clic sur la même valeur = remise à zéro
+        entry(it.id)[key]=v;paint(v);
+        refreshDone(el,it.id);scheduleSave();updateStats();
+      };
+    });
+  });
+  return el;
+}
+function dots(){ let s="";for(let i=0;i<5;i++)s+='<button class="dot" type="button"></button>';return s; }
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function refreshDone(el,id){ el.classList.toggle("done",isDone(id)); }
+
+/* ---------- stats & synthesis ---------- */
+function allItems(){ return PLAN.flatMap(w=>w.items); }
+function updateStats(){
+  const items=allItems();
+  const total=items.length;
+  const done=items.filter(it=>isDone(it.id)).length;
+  document.getElementById("s-done").innerHTML=done+`<small> / ${total} étapes</small>`;
+  document.getElementById("progress").style.width=(done/total*100)+"%";
+
+  const eVals=items.map(it=>entry(it.id).energie).filter(v=>v>0);
+  const aVals=items.map(it=>entry(it.id).aisance).filter(v=>v>0);
+  document.getElementById("s-energie").textContent=eVals.length?avg(eVals):"—";
+  document.getElementById("s-aisance").textContent=aVals.length?avg(aVals):"—";
+
+  renderSynth();
+}
+function avg(arr){ return (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1); }
+
+function renderSynth(){
+  const items=allItems();
+  const byE=items.filter(it=>entry(it.id).energie>0).sort((a,b)=>entry(b.id).energie-entry(a.id).energie).slice(0,3);
+  const byA=items.filter(it=>entry(it.id).aisance>0).sort((a,b)=>entry(b.id).aisance-entry(a.id).aisance).slice(0,3);
+
+  document.getElementById("top-energie").innerHTML = byE.length
+    ? byE.map(it=>`<div class="synth-item"><span>${it.title}</span><span class="v">${entry(it.id).energie}/5</span></div>`).join("")
+    : `<p class="synth-empty">Remplis quelques curseurs et tes coups de cœur apparaîtront ici.</p>`;
+  document.getElementById("top-aisance").innerHTML = byA.length
+    ? byA.map(it=>`<div class="synth-item"><span>${it.title}</span><span class="v">${entry(it.id).aisance}/5</span></div>`).join("")
+    : `<p class="synth-empty">À découvrir au fil des journées.</p>`;
+
+  // note : talents = fort en énergie ET en aisance
+  const sweet=items.filter(it=>entry(it.id).energie>=4 && entry(it.id).aisance>=4);
+  const note=document.getElementById("synth-note");
+  if(sweet.length){
+    note.innerHTML=`Ton point d'or, là où le plaisir rencontre la facilité : <b style="color:#E7A9BC">${sweet.map(s=>s.title).join(", ")}</b>. C'est le signal d'un vrai talent — garde-le en tête pour la clôture.`;
+  } else {
+    note.textContent="Quand une même journée grimpe haut en énergie ET en aisance, note-la : c'est là que se cache un talent, parfois là où tu ne l'attendais pas.";
+  }
+}
+
+/* ---------- controls ---------- */
+function initControls(){
+  document.getElementById("print").onclick=()=>window.print();
+  let expanded=false;
+  const eb=document.getElementById("expand");
+  eb.onclick=()=>{
+    expanded=!expanded;
+    document.querySelectorAll(".day").forEach(d=>{
+      d.classList.toggle("open",expanded);
+      d.querySelector(".day-head").setAttribute("aria-expanded",expanded?"true":"false");
+    });
+    eb.textContent=expanded?"Tout replier":"Tout déplier";
+  };
+  document.getElementById("export").onclick=exportBackup;
+  document.getElementById("exportbook").onclick=exportStandaloneBook;
+  const impf=document.getElementById("importfile");
+  document.getElementById("importbtn").onclick=()=>impf.click();
+  impf.onchange=()=>{ if(impf.files[0]) importBackup(impf.files[0]); impf.value=""; };
+
+  document.getElementById("reset").onclick=async()=>{
+    if(!confirm("Effacer toutes tes notes de ce book ? Cette action est définitive.")) return;
+    store={};
+    lsRemove();
+    await idbClear();
+    render();
+  };
+}
+
+function initFlush(){
+  const hardSave=()=>{ const v=JSON.stringify(store); lsSet(v); if(idb) idbPut(store); };
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden){ hardSave(); flushSave(); } });
+  window.addEventListener("pagehide",hardSave);
+  window.addEventListener("beforeunload",hardSave);
+}
+
+(async function init(){
+  await loadStore();
+  render();
+  initControls();
+  initFlush();
+  testPersist();
+})();
+</script>
+</body>
+</html>
