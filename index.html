@@ -144,14 +144,42 @@
 
   .field{margin-bottom:16px;}
   .field label{display:block;font-size:.86rem;font-weight:600;margin-bottom:6px;}
-  .field textarea,.field input{
+  .field input{
     width:100%;font:inherit;font-size:.95rem;color:var(--ink);
     background:var(--porcelain);border:1px solid var(--line);border-radius:12px;
-    padding:11px 13px;resize:vertical;transition:border-color .18s,background .18s;
+    padding:11px 13px;transition:border-color .18s,background .18s;
   }
-  .field textarea{min-height:74px;line-height:1.5;}
-  .field textarea:focus,.field input:focus{outline:none;border-color:var(--rose);background:#fff;}
-  .field textarea::placeholder,.field input::placeholder{color:#B8ABB0;}
+  .field input:focus{outline:none;border-color:var(--rose);background:#fff;}
+  .field input::placeholder{color:#B8ABB0;}
+
+  /* ---------- ÉDITEUR ENRICHI ---------- */
+  .rte-toolbar{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px;}
+  .rte-btn{
+    font:inherit;font-size:.84rem;font-weight:600;color:var(--mist);
+    background:var(--porcelain);border:1px solid var(--line);border-radius:8px;
+    width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:background .15s,color .15s,border-color .15s;
+  }
+  .rte-btn.wide{width:auto;padding:0 11px;}
+  .rte-btn:hover{border-color:var(--line-strong);color:var(--ink);}
+  .rte-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .rte-color{
+    width:30px;height:30px;padding:2px;border:1px solid var(--line);border-radius:8px;
+    background:var(--porcelain);cursor:pointer;
+  }
+  .rte-color::-webkit-color-swatch-wrapper{padding:3px;}
+  .rte-color::-webkit-color-swatch{border:none;border-radius:5px;}
+
+  .rte{
+    width:100%;min-height:170px;font:inherit;font-size:.95rem;color:var(--ink);
+    background:var(--porcelain);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;line-height:1.6;transition:border-color .18s,background .18s;
+    overflow-wrap:anywhere;
+  }
+  .rte:focus{outline:none;border-color:var(--rose);background:#fff;}
+  .rte:empty:before{content:attr(data-placeholder);color:#B8ABB0;}
+  .rte h3{font-family:"Fraunces",serif;font-weight:600;font-size:1.08rem;margin:0 0 6px;}
+  .rte ul{margin:6px 0;padding-left:22px;}
 
   .meters{display:flex;flex-wrap:wrap;gap:26px;margin-top:6px;}
   .meter .mlabel{font-size:.86rem;font-weight:600;margin-bottom:7px;}
@@ -231,7 +259,7 @@
   /* ---------- PRINT ---------- */
   @media print{
     body{background:#fff;}
-    .filters,.controls,.chev,.saved,.no-print{display:none!important;}
+    .filters,.controls,.chev,.saved,.rte-toolbar,.no-print{display:none!important;}
     .day-body{grid-template-rows:1fr!important;}
     .day{break-inside:avoid;box-shadow:none!important;border-color:var(--line)!important;}
     .synth{background:#fff;color:var(--ink);border:1px solid var(--line);}
@@ -241,7 +269,7 @@
     .dname,.jphrase{color:var(--ink)!important;}
     .dstats,.jmeta{color:var(--mist)!important;}
     .journal-item{border-color:var(--line);}
-    .field textarea,.field input{background:#fff;}
+    .field input,.rte{background:#fff;border-color:var(--line);}
   }
 </style>
 </head>
@@ -589,9 +617,9 @@ function dayNode(it){
     </button>
     <div class="day-body"><div class="day-body-inner"><div class="body-pad">
       ${it.piste?`<div class="piste"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0-4 10.5c.5.5 1 1.2 1 2V17h6v-1.5c0-.8.5-1.5 1-2A6 6 0 0 0 12 3z"/><path d="M9 21h6"/></svg><span><b>Piste du jour.</b> ${it.piste}</span></div>`:""}
-      <div class="field"><label>Ce que j'ai appris</label><textarea data-f="appris" placeholder="Les notions clés, au propre.">${esc(e.appris)}</textarea></div>
-      <div class="field"><label>Exercices & mises en situation</label><textarea data-f="exos" placeholder="Ce qu'on a pratiqué, les jeux de rôle, ce qui a marché ou coincé.">${esc(e.exos)}</textarea></div>
-      <div class="field"><label>Mes recherches perso approfondies</label><textarea data-f="perso" placeholder="Ce que tu es allée creuser toi-même après la journée.">${esc(e.perso)}</textarea></div>
+      ${rteField("appris","Ce que j'ai appris","Les notions clés, au propre.",e.appris)}
+      ${rteField("exos","Exercices & mises en situation","Ce qu'on a pratiqué, les jeux de rôle, ce qui a marché ou coincé.",e.exos)}
+      ${rteField("perso","Mes recherches perso approfondies","Ce que tu es allée creuser toi-même après la journée.",e.perso)}
       <div class="field"><label>À retenir en une phrase</label><input data-f="retenir" placeholder="Ton pense-bête du jour." value="${esc(e.retenir)}" /></div>
       <div class="meters">
         <div class="meter energie" data-m="energie">
@@ -615,11 +643,18 @@ function dayNode(it){
   };
   // text inputs
   el.querySelectorAll("[data-f]").forEach(inp=>{
+    const isRTE=inp.classList.contains("rte");
     inp.addEventListener("input",()=>{
-      entry(it.id)[inp.dataset.f]=inp.value;
+      let val=isRTE?inp.innerHTML:inp.value;
+      if(isRTE && htmlIsEmpty(val)){ val=""; inp.innerHTML=""; }
+      entry(it.id)[inp.dataset.f]=val;
       refreshDone(el,it.id);scheduleSave();updateStats();
     });
     inp.addEventListener("blur",()=>{ flushSave(); });
+  });
+  // barres d'outils de mise en forme
+  el.querySelectorAll(".rte-toolbar").forEach(bar=>{
+    wireToolbar(bar, el.querySelector(`.rte[data-f="${bar.dataset.for}"]`));
   });
   // dot meters
   el.querySelectorAll(".meter").forEach(m=>{
@@ -642,6 +677,82 @@ function dayNode(it){
 function dots(){ let s="";for(let i=0;i<5;i++)s+='<button class="dot" type="button"></button>';return s; }
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function refreshDone(el,id){ el.classList.toggle("done",isDone(id)); }
+
+/* ---------- éditeur enrichi (gras, italique, souligné, titres, police, couleur) ---------- */
+function toHtml(raw){
+  if(!raw) return "";
+  // ne reconnaît que les balises que l'éditeur enrichi peut produire, pour ne pas
+  // confondre un ancien texte brut contenant par ex. "<référence>" avec du HTML
+  if(/<\/?(b|i|u|h3|ul|li|br|font|div|span|p)(\s[^>]*)?>/i.test(raw)) return raw;
+  return esc(raw).replace(/\n/g,"<br>"); // ancien texte brut : on garde les retours à la ligne
+}
+function htmlIsEmpty(html){
+  if(!html) return true;
+  const tmp=document.createElement("div");
+  tmp.innerHTML=html;
+  return !tmp.textContent.trim();
+}
+function rteField(field,label,placeholder,value){
+  return `<div class="field">
+    <label>${label}</label>
+    <div class="rte-toolbar" data-for="${field}">
+      <button type="button" class="rte-btn" data-cmd="bold" title="Gras" style="font-weight:800;">G</button>
+      <button type="button" class="rte-btn" data-cmd="italic" title="Italique" style="font-style:italic;">I</button>
+      <button type="button" class="rte-btn" data-cmd="underline" title="Souligné" style="text-decoration:underline;">S</button>
+      <button type="button" class="rte-btn wide" data-cmd="formatBlock" data-value="&lt;h3&gt;" title="Titre">Titre</button>
+      <button type="button" class="rte-btn wide" data-cmd="formatBlock" data-value="&lt;p&gt;" title="Texte normal">Texte</button>
+      <button type="button" class="rte-btn wide" data-cmd="fontName" data-value="Fraunces" title="Police élégante" style="font-family:Fraunces,serif;">Aa</button>
+      <button type="button" class="rte-btn wide" data-cmd="fontName" data-value="Instrument Sans" title="Police normale">Aa</button>
+      <input type="color" class="rte-color" data-cmd="foreColor" value="#241A20" title="Couleur du texte" />
+      <button type="button" class="rte-btn" data-cmd="insertUnorderedList" title="Liste à puces">•</button>
+      <button type="button" class="rte-btn" data-cmd="removeFormat" title="Effacer la mise en forme">✕</button>
+    </div>
+    <div class="rte" contenteditable="true" data-f="${field}" data-placeholder="${placeholder}">${toHtml(value)}</div>
+  </div>`;
+}
+function wireToolbar(bar,field){
+  if(!field) return;
+  let savedRange=null;
+  const saveRange=()=>{ const sel=window.getSelection(); if(sel.rangeCount) savedRange=sel.getRangeAt(0); };
+  field.addEventListener("mouseup",saveRange);
+  field.addEventListener("keyup",saveRange);
+  field.addEventListener("focus",saveRange);
+
+  bar.querySelectorAll(".rte-btn").forEach(btn=>{
+    btn.addEventListener("mousedown",ev=>ev.preventDefault());
+    btn.addEventListener("click",()=>{
+      field.focus();
+      document.execCommand(btn.dataset.cmd,false,btn.dataset.value||null);
+      field.dispatchEvent(new Event("input",{bubbles:true}));
+      updateToolbarState(bar);
+    });
+  });
+  const colorInput=bar.querySelector(".rte-color");
+  if(colorInput){
+    colorInput.addEventListener("mousedown",saveRange);
+    colorInput.addEventListener("input",()=>{
+      field.focus();
+      if(savedRange){ const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+      document.execCommand("foreColor",false,colorInput.value);
+      field.dispatchEvent(new Event("input",{bubbles:true}));
+    });
+  }
+}
+function updateToolbarState(bar){
+  bar.querySelectorAll(".rte-btn[data-cmd]").forEach(btn=>{
+    const cmd=btn.dataset.cmd;
+    if(["bold","italic","underline","insertUnorderedList"].includes(cmd)){
+      try{ btn.classList.toggle("active",document.queryCommandState(cmd)); }catch(e){}
+    }
+  });
+}
+document.addEventListener("selectionchange",()=>{
+  const active=document.activeElement;
+  if(active && active.classList && active.classList.contains("rte")){
+    const bar=active.closest(".field").querySelector(".rte-toolbar");
+    if(bar) updateToolbarState(bar);
+  }
+});
 
 /* ---------- stats & synthesis ---------- */
 function allItems(){ return PLAN.flatMap(w=>w.items); }
