@@ -181,6 +181,21 @@
   .rte h3{font-family:"Fraunces",serif;font-weight:600;font-size:1.08rem;margin:0 0 6px;}
   .rte ul{margin:6px 0;padding-left:22px;}
 
+  /* ---------- FICHIERS JOINTS ---------- */
+  .files-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+  .file-row{
+    display:flex;align-items:center;gap:10px;font-size:.88rem;
+    background:var(--porcelain);border:1px solid var(--line);border-radius:10px;padding:8px 12px;
+  }
+  .file-row .fname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+  .file-row .fsize{flex:0 0 auto;color:var(--mist);font-size:.78rem;}
+  .file-row .fopen{flex:0 0 auto;color:var(--rose);font-weight:600;text-decoration:none;}
+  .file-row .fopen:hover{text-decoration:underline;}
+  .file-row .fdel{flex:0 0 auto;background:none;border:0;color:var(--mist);cursor:pointer;font-size:.95rem;line-height:1;padding:2px 4px;}
+  .file-row .fdel:hover{color:var(--rose);}
+  .file-add-btn{font-size:.84rem;padding:8px 16px;}
+  .file-hint{font-size:.76rem;color:var(--mist);font-style:italic;margin:6px 0 0;}
+
   .meters{display:flex;flex-wrap:wrap;gap:26px;margin-top:6px;}
   .meter .mlabel{font-size:.86rem;font-weight:600;margin-bottom:7px;}
   .dots{display:flex;gap:7px;}
@@ -259,7 +274,7 @@
   /* ---------- PRINT ---------- */
   @media print{
     body{background:#fff;}
-    .filters,.controls,.chev,.saved,.rte-toolbar,.no-print{display:none!important;}
+    .filters,.controls,.chev,.saved,.rte-toolbar,.file-add-btn,.file-input,.file-hint,.fopen,.fdel,.no-print{display:none!important;}
     .day-body{grid-template-rows:1fr!important;}
     .day{break-inside:avoid;box-shadow:none!important;border-color:var(--line)!important;}
     .synth{background:#fff;color:var(--ink);border:1px solid var(--line);}
@@ -405,7 +420,9 @@ let saveTimer = null;
 /* ---------- stockage local fiable : IndexedDB en principal, localStorage en secours ---------- */
 const DB_NAME = "vs_book_db";
 const DB_STORE = "kv";
+const FILES_STORE = "files";
 const DB_KEY = "notes";
+const DB_VERSION = 2;
 const LS_KEY = "vs_book_v1";
 let idb = null;
 let persistOK = true;
@@ -414,8 +431,12 @@ function openIDB(){
   return new Promise(resolve=>{
     if(!window.indexedDB){ resolve(null); return; }
     try{
-      const req=indexedDB.open(DB_NAME,1);
-      req.onupgradeneeded=()=>{ req.result.createObjectStore(DB_STORE); };
+      const req=indexedDB.open(DB_NAME,DB_VERSION);
+      req.onupgradeneeded=()=>{
+        const db=req.result;
+        if(!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+        if(!db.objectStoreNames.contains(FILES_STORE)) db.createObjectStore(FILES_STORE);
+      };
       req.onsuccess=()=>resolve(req.result);
       req.onerror=()=>resolve(null);
     }catch(e){ resolve(null); }
@@ -454,19 +475,76 @@ function idbClear(){
     }catch(e){ resolve(); }
   });
 }
+function idbPutFile(id,blob){
+  return new Promise(resolve=>{
+    if(!idb){ resolve(false); return; }
+    try{
+      const tx=idb.transaction(FILES_STORE,"readwrite");
+      tx.objectStore(FILES_STORE).put(blob,id);
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=()=>resolve(false);
+    }catch(e){ resolve(false); }
+  });
+}
+function idbGetFile(id){
+  return new Promise(resolve=>{
+    if(!idb){ resolve(null); return; }
+    try{
+      const tx=idb.transaction(FILES_STORE,"readonly");
+      const rq=tx.objectStore(FILES_STORE).get(id);
+      rq.onsuccess=()=>resolve(rq.result||null);
+      rq.onerror=()=>resolve(null);
+    }catch(e){ resolve(null); }
+  });
+}
+function idbDeleteFile(id){
+  return new Promise(resolve=>{
+    if(!idb){ resolve(); return; }
+    try{
+      const tx=idb.transaction(FILES_STORE,"readwrite");
+      tx.objectStore(FILES_STORE).delete(id);
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>resolve();
+    }catch(e){ resolve(); }
+  });
+}
+function idbAllFileIds(){
+  return new Promise(resolve=>{
+    if(!idb){ resolve([]); return; }
+    try{
+      const tx=idb.transaction(FILES_STORE,"readonly");
+      const rq=tx.objectStore(FILES_STORE).getAllKeys();
+      rq.onsuccess=()=>resolve(rq.result||[]);
+      rq.onerror=()=>resolve([]);
+    }catch(e){ resolve([]); }
+  });
+}
 function lsGet(){ try{ return window.localStorage.getItem(LS_KEY); }catch(e){ return null; } }
 function lsSet(v){ try{ window.localStorage.setItem(LS_KEY,v); return true; }catch(e){ return false; } }
 function lsRemove(){ try{ window.localStorage.removeItem(LS_KEY); }catch(e){} }
 
-/* notes déjà intégrées dans un book exporté (meta seed-data), utilisées si rien n'est encore stocké ici */
+/* notes (+ fichiers) déjà intégrés dans un book exporté (meta seed-data), utilisés si rien n'est encore stocké ici */
 function readSeed(){
   const meta=document.getElementById("seed-data");
   const b64=meta&&meta.getAttribute("content");
   if(!b64) return null;
   try{
     const data=JSON.parse(decodeURIComponent(escape(atob(b64))));
-    return (data&&typeof data==="object")?data:null;
+    if(!data||typeof data!=="object") return null;
+    return data.notes ? data : {notes:data,files:{}}; // compat anciens exports (notes seules, sans fichiers)
   }catch(e){ return null; }
+}
+async function restoreSeedFiles(filesPayload){
+  if(!filesPayload) return;
+  for(const id of Object.keys(filesPayload)){
+    const f=filesPayload[id];
+    try{
+      const byteChars=atob(f.data);
+      const bytes=new Uint8Array(byteChars.length);
+      for(let i=0;i<byteChars.length;i++) bytes[i]=byteChars.charCodeAt(i);
+      await idbPutFile(id, new File([bytes], f.name, {type:f.type}));
+    }catch(e){}
+  }
 }
 
 async function loadStore(){
@@ -475,7 +553,9 @@ async function loadStore(){
   if(fromIDB && typeof fromIDB==="object"){ store=fromIDB; return; }
   const raw=lsGet();
   if(raw){ try{ store=JSON.parse(raw); return; }catch(e){} }
-  store = readSeed() || {};
+  const seed=readSeed();
+  if(seed){ store=seed.notes||{}; await restoreSeedFiles(seed.files); }
+  else{ store={}; }
 }
 async function saveStore(){
   const okIDB=await idbPut(store);
@@ -503,22 +583,44 @@ function updatePersistNotice(){
   if(n) n.style.display = persistOK ? "none" : "flex";
 }
 
-/* ---------- export d'un book HTML autonome, notes intégrées ---------- */
-function buildStandaloneHTML(){
-  const json=JSON.stringify(store);
+/* ---------- export d'un book HTML autonome, notes + fichiers intégrés ---------- */
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result.split(",")[1]);
+    reader.onerror=reject;
+    reader.readAsDataURL(blob);
+  });
+}
+async function buildStandaloneHTML(){
+  const fileIds=await idbAllFileIds();
+  const files={};
+  for(const id of fileIds){
+    const blob=await idbGetFile(id);
+    if(!blob) continue;
+    try{ files[id]={name:blob.name||"",type:blob.type||"",data:await blobToBase64(blob)}; }catch(e){}
+  }
+  const json=JSON.stringify({notes:store,files});
   const b64=btoa(unescape(encodeURIComponent(json)));
   return PRISTINE_HTML.replace(
     /<meta id="seed-data" content="[^"]*">/,
     `<meta id="seed-data" content="${b64}">`
   );
 }
-function exportStandaloneBook(){
-  const blob=new Blob([buildStandaloneHTML()],{type:"text/html"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url; a.download="mon-book-formation-vs-"+new Date().toISOString().slice(0,10)+".html";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+async function exportStandaloneBook(){
+  const btn=document.getElementById("exportbook");
+  const original=btn.textContent;
+  btn.textContent="Préparation…"; btn.disabled=true;
+  try{
+    const blob=new Blob([await buildStandaloneHTML()],{type:"text/html"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download="mon-book-formation-vs-"+new Date().toISOString().slice(0,10)+".html";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  } finally {
+    btn.textContent=original; btn.disabled=false;
+  }
 }
 
 /* ---------- sauvegarde / import par fichier ---------- */
@@ -554,8 +656,18 @@ function scheduleSave(){
 }
 async function flushSave(){ clearTimeout(saveTimer); await saveStore(); flagSaved(); }
 
-function entry(id){ if(!store[id]) store[id]={appris:"",exos:"",perso:"",retenir:"",energie:0,aisance:0}; return store[id]; }
-function isDone(id){ const e=store[id]; if(!e) return false; return !!(e.appris||e.exos||e.perso||e.retenir||e.energie||e.aisance); }
+function entry(id){
+  if(!store[id]) store[id]={appris:"",exos:"",perso:"",retenir:"",energie:0,aisance:0,files:[]};
+  if(!store[id].files) store[id].files=[]; // entrées créées avant l'ajout des pièces jointes
+  return store[id];
+}
+function isDone(id){ const e=store[id]; if(!e) return false; return !!(e.appris||e.exos||e.perso||e.retenir||e.energie||e.aisance||(e.files&&e.files.length)); }
+function formatSize(bytes){
+  if(bytes==null) return "";
+  if(bytes<1024) return bytes+" o";
+  if(bytes<1024*1024) return Math.round(bytes/1024)+" Ko";
+  return (bytes/1024/1024).toFixed(1)+" Mo";
+}
 
 /* ---------- render ---------- */
 function render(){
@@ -621,6 +733,13 @@ function dayNode(it){
       ${rteField("exos","Exercices & mises en situation","Ce qu'on a pratiqué, les jeux de rôle, ce qui a marché ou coincé.",e.exos)}
       ${rteField("perso","Mes recherches perso approfondies","Ce que tu es allée creuser toi-même après la journée.",e.perso)}
       <div class="field"><label>À retenir en une phrase</label><input data-f="retenir" placeholder="Ton pense-bête du jour." value="${esc(e.retenir)}" /></div>
+      <div class="field">
+        <label>Fichiers joints</label>
+        <div class="files-list" data-files-for="${it.id}"></div>
+        <button type="button" class="btn ghost file-add-btn" data-add-for="${it.id}">+ Ajouter un fichier</button>
+        <input type="file" multiple class="file-input" data-input-for="${it.id}" style="display:none" />
+        <p class="file-hint">PDF, photos, documents… conservés dans ce navigateur. Pour les emporter, utilise « Exporter mon book ».</p>
+      </div>
       <div class="meters">
         <div class="meter energie" data-m="energie">
           <div class="mlabel">Énergie — est-ce que ça m'a donné envie ?</div>
@@ -656,6 +775,8 @@ function dayNode(it){
   el.querySelectorAll(".rte-toolbar").forEach(bar=>{
     wireToolbar(bar, el.querySelector(`.rte[data-f="${bar.dataset.for}"]`));
   });
+  // fichiers joints
+  wireFiles(el, it.id);
   // dot meters
   el.querySelectorAll(".meter").forEach(m=>{
     const key=m.dataset.m;
@@ -753,6 +874,61 @@ document.addEventListener("selectionchange",()=>{
     if(bar) updateToolbarState(bar);
   }
 });
+
+/* ---------- fichiers joints ---------- */
+function wireFiles(el,id){
+  const list=el.querySelector(`.files-list[data-files-for="${id}"]`);
+  const addBtn=el.querySelector(`.file-add-btn[data-add-for="${id}"]`);
+  const input=el.querySelector(`.file-input[data-input-for="${id}"]`);
+
+  function renderFiles(){
+    const files=entry(id).files||[];
+    list.innerHTML=files.length?files.map(f=>`
+      <div class="file-row">
+        <span class="fname">${esc(f.name)}</span>
+        <span class="fsize">${formatSize(f.size)}</span>
+        <a class="fopen" href="#" data-open="${f.id}">Voir</a>
+        <button type="button" class="fdel" data-del="${f.id}" title="Retirer">✕</button>
+      </div>`).join(""):"";
+    list.querySelectorAll("[data-open]").forEach(a=>{
+      a.addEventListener("click",async ev=>{
+        ev.preventDefault();
+        const blob=await idbGetFile(a.dataset.open);
+        if(!blob){ alert("Ce fichier n'est plus disponible sur cet appareil."); return; }
+        const url=URL.createObjectURL(blob);
+        window.open(url,"_blank");
+        setTimeout(()=>URL.revokeObjectURL(url),60000);
+      });
+    });
+    list.querySelectorAll("[data-del]").forEach(btn=>{
+      btn.addEventListener("click",async()=>{
+        if(!confirm("Retirer ce fichier ?")) return;
+        await idbDeleteFile(btn.dataset.del);
+        entry(id).files=(entry(id).files||[]).filter(f=>f.id!==btn.dataset.del);
+        renderFiles();
+        refreshDone(el,id);scheduleSave();updateStats();
+      });
+    });
+  }
+  renderFiles();
+
+  addBtn.addEventListener("click",()=>{
+    if(!idb){ alert("L'ajout de fichiers nécessite IndexedDB, indisponible sur ce navigateur."); return; }
+    input.click();
+  });
+  input.addEventListener("change",async()=>{
+    for(const file of input.files){
+      const fid="f_"+Date.now()+"_"+Math.random().toString(36).slice(2,8);
+      if(await idbPutFile(fid,file)){
+        entry(id).files=entry(id).files||[];
+        entry(id).files.push({id:fid,name:file.name,type:file.type,size:file.size});
+      }
+    }
+    input.value="";
+    renderFiles();
+    refreshDone(el,id);scheduleSave();updateStats();
+  });
+}
 
 /* ---------- stats & synthesis ---------- */
 function allItems(){ return PLAN.flatMap(w=>w.items); }
