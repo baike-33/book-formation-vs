@@ -581,6 +581,14 @@ function testPersist(){
   persistOK = !!idb || okLS;
   updatePersistNotice();
 }
+/* demande au navigateur de protéger ce stockage d'une purge automatique (pression disque, etc.) */
+async function requestPersistentStorage(){
+  try{
+    if(navigator.storage && navigator.storage.persist){
+      await navigator.storage.persist();
+    }
+  }catch(e){}
+}
 function updatePersistNotice(){
   const n=document.getElementById("persist-notice");
   if(n) n.style.display = persistOK ? "none" : "flex";
@@ -1046,6 +1054,7 @@ function initFlush(){
   initControls();
   initFlush();
   testPersist();
+  requestPersistentStorage();
 })();
 </script>
 </body>
