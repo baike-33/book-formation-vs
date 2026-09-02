@@ -105,10 +105,11 @@
   .day:hover{border-color:var(--line-strong);}
   .day.open{border-color:var(--rose);box-shadow:0 14px 34px -22px rgba(166,58,91,.4);}
   .day.hidden{display:none;}
-  .day-head{
-    display:flex;align-items:center;gap:16px;width:100%;
+  .day-head{display:flex;align-items:center;gap:6px;width:100%;padding:17px 20px;}
+  .day-head-toggle{
+    display:flex;align-items:center;gap:16px;flex:1 1 auto;min-width:0;
     text-align:left;background:none;border:0;font:inherit;color:inherit;
-    padding:17px 20px;cursor:pointer;
+    padding:0;cursor:pointer;
   }
   .daynum{
     flex:0 0 auto;font-family:"Fraunces",serif;font-size:1.15rem;
@@ -258,6 +259,81 @@
   .saved{font-size:.82rem;color:var(--mist);opacity:0;transition:opacity .3s;}
   .saved.show{opacity:1;}
 
+  /* ---------- MODE LIVRE ---------- */
+  .book-open-btn{
+    flex:0 0 auto;background:none;border:0;color:var(--mist);cursor:pointer;
+    padding:4px;display:flex;align-items:center;transition:color .15s;
+  }
+  .book-open-btn:hover{color:var(--rose);}
+
+  #book-overlay{
+    position:fixed;inset:0;z-index:80;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 30%,rgba(52,38,46,.72),rgba(20,14,17,.92));
+    padding:70px 22px 50px;
+  }
+  #book-overlay[hidden]{display:none;}
+  .book-close{
+    position:fixed;top:22px;right:24px;
+    width:38px;height:38px;border-radius:99px;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.05rem;cursor:pointer;transition:background .15s;
+  }
+  .book-close:hover{background:rgba(255,255,255,.2);}
+  .book-shell{
+    width:100%;max-width:740px;height:100%;max-height:820px;
+    display:flex;flex-direction:column;min-height:0;
+  }
+  .book-page{
+    flex:1 1 auto;min-height:0;
+    background:#FFFDF8;border-radius:6px 22px 22px 6px;
+    box-shadow:0 34px 80px -24px rgba(0,0,0,.6),inset 4px 0 0 rgba(166,58,91,.14);
+    overflow:hidden;
+  }
+  .book-page-scroll{
+    height:100%;overflow-y:auto;padding:38px 42px 34px;
+    background-image:radial-gradient(rgba(36,26,32,.035) 1px,transparent 1px);
+    background-size:100% 27px;
+  }
+  @keyframes bookPageIn{
+    from{opacity:0;transform:translateX(22px) scale(.985);}
+    to{opacity:1;transform:translateX(0) scale(1);}
+  }
+  .book-page.book-page-anim{animation:bookPageIn .38s cubic-bezier(.2,.7,.2,1);}
+  .book-folio{
+    text-align:center;font-family:"Fraunces",serif;font-style:italic;color:#D8C9CF;
+    font-size:.85rem;padding:14px 0 6px;
+  }
+  .book-nav{display:flex;justify-content:center;gap:16px;}
+  .book-nav button{
+    width:44px;height:44px;border-radius:99px;cursor:pointer;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+    transition:background .15s,opacity .15s;
+  }
+  .book-nav button:hover{background:rgba(255,255,255,.2);}
+  .book-nav button:disabled{opacity:.28;cursor:default;background:rgba(255,255,255,.1);}
+
+  /* le jour devient une page de carnet, pas une carte */
+  #book-overlay .day{border:0;border-radius:0;box-shadow:none;margin:0;}
+  #book-overlay .day-head{padding:0 0 20px;}
+  #book-overlay .day-head-toggle{cursor:default;}
+  #book-overlay .chev,#book-overlay .filledmark,#book-overlay .book-open-btn{display:none;}
+  #book-overlay .daynum{
+    font-family:"Instrument Sans",sans-serif;font-size:.8rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--rose);font-weight:700;
+  }
+  #book-overlay .day-title{font-family:"Fraunces",serif;font-weight:500;font-size:1.9rem;margin-top:6px;}
+  #book-overlay .day-meta{font-size:.9rem;}
+  #book-overlay .body-pad{border-top:0;padding:0;}
+
+  @media(max-width:640px){
+    #book-overlay{padding:60px 10px 30px;}
+    .book-page-scroll{padding:26px 20px 24px;}
+    #book-overlay .day-title{font-size:1.5rem;}
+  }
+
   footer{padding:26px 0 70px;color:var(--mist);font-size:.86rem;}
   footer .fr{font-family:"Fraunces",serif;font-style:italic;color:var(--ink);font-size:1.05rem;}
 
@@ -344,6 +420,7 @@
   </section>
 
   <div class="controls no-print">
+    <button class="btn" id="bookmode">Mode livre</button>
     <button class="btn" id="exportbook">Exporter mon book</button>
     <button class="btn" id="print">Imprimer mon book</button>
     <button class="btn ghost" id="export">Sauvegarder mes notes (fichier)</button>
@@ -360,6 +437,20 @@
     <p>Tes notes sont sauvegardées automatiquement dans ce book, sur cet appareil.</p>
   </footer>
 
+</div>
+
+<div class="book-overlay no-print" id="book-overlay" hidden>
+  <button type="button" class="book-close" id="book-close" title="Fermer le mode livre" aria-label="Fermer">✕</button>
+  <div class="book-shell">
+    <div class="book-page">
+      <div class="book-page-scroll" id="book-page-slot"></div>
+    </div>
+    <div class="book-folio" id="book-folio"></div>
+    <div class="book-nav">
+      <button type="button" id="book-prev" title="Page précédente" aria-label="Page précédente">‹</button>
+      <button type="button" id="book-next" title="Page suivante" aria-label="Page suivante">›</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -728,16 +819,21 @@ function dayNode(it){
   if(it.tag) badges.push(`<span class="badge ${it.tag}">${BADGE_LABEL[it.tag]}</span>`);
 
   el.innerHTML=`
-    <button class="day-head" aria-expanded="false">
-      <span class="daynum">${it.id==="stage"?"★":it.id}</span>
-      <span class="day-main">
-        <span class="day-title">${it.title}</span>
-        <span class="day-meta">${it.date}</span>
-        <span class="badges">${badges.join("")}</span>
-      </span>
-      <span class="filledmark" title="Documentée"></span>
-      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
+    <div class="day-head">
+      <button class="day-head-toggle" aria-expanded="false">
+        <span class="daynum">${it.id==="stage"?"★":it.id}</span>
+        <span class="day-main">
+          <span class="day-title">${it.title}</span>
+          <span class="day-meta">${it.date}</span>
+          <span class="badges">${badges.join("")}</span>
+        </span>
+        <span class="filledmark" title="Documentée"></span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <button type="button" class="book-open-btn" data-book-open="${it.id}" title="Ouvrir en mode livre" aria-label="Ouvrir en mode livre">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </button>
+    </div>
     <div class="day-body"><div class="day-body-inner"><div class="body-pad">
       ${it.piste?`<div class="piste"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0-4 10.5c.5.5 1 1.2 1 2V17h6v-1.5c0-.8.5-1.5 1-2A6 6 0 0 0 12 3z"/><path d="M9 21h6"/></svg><span><b>Piste du jour.</b> ${it.piste}</span></div>`:""}
       ${rteField("appris","Ce que j'ai appris","Les notions clés, au propre.",e.appris)}
@@ -766,11 +862,17 @@ function dayNode(it){
     </div></div></div>`;
 
   // toggle
-  const head=el.querySelector(".day-head");
+  const head=el.querySelector(".day-head-toggle");
   head.onclick=()=>{
+    if(document.body.classList.contains("book-mode")) return; // en mode livre, la page reste toujours ouverte
     const open=el.classList.toggle("open");
     head.setAttribute("aria-expanded", open?"true":"false");
   };
+  // ouvrir en mode livre
+  el.querySelector(".book-open-btn").addEventListener("click",ev=>{
+    ev.stopPropagation();
+    bookOpen(it.id);
+  });
   // text inputs
   el.querySelectorAll("[data-f]").forEach(inp=>{
     const isRTE=inp.classList.contains("rte");
@@ -942,6 +1044,58 @@ function wireFiles(el,id){
   });
 }
 
+/* ---------- mode livre : lecture immersive, page à page ---------- */
+let bookOrder=[];
+let bookIndex=-1;
+function bookOpen(id){
+  bookOrder=allItems().map(it=>it.id);
+  bookIndex=bookOrder.indexOf(id);
+  if(bookIndex<0) bookIndex=0;
+  document.body.classList.add("book-mode");
+  document.getElementById("book-overlay").hidden=false;
+  showBookPage();
+}
+function showBookPage(){
+  const id=bookOrder[bookIndex];
+  const dayEl=document.querySelector(`.day[data-id="${id}"]`);
+  if(!dayEl) return;
+  const slot=document.getElementById("book-page-slot");
+  slot.innerHTML="";
+  slot.appendChild(dayEl);
+  requestAnimationFrame(()=>{ dayEl.classList.add("open"); });
+  document.getElementById("book-folio").textContent=(bookIndex+1)+" / "+bookOrder.length;
+  document.getElementById("book-prev").disabled=bookIndex<=0;
+  document.getElementById("book-next").disabled=bookIndex>=bookOrder.length-1;
+  slot.scrollTop=0;
+  const page=document.querySelector(".book-page");
+  page.classList.remove("book-page-anim");
+  void page.offsetWidth; // relance l'animation
+  page.classList.add("book-page-anim");
+}
+function bookNav(delta){
+  const next=bookIndex+delta;
+  if(next<0||next>=bookOrder.length) return;
+  document.getElementById("book-page-slot").innerHTML=""; // libère la page avant de reconstruire la liste (déjà sauvegardée en continu)
+  render();
+  bookIndex=next;
+  showBookPage();
+}
+function bookClose(){
+  document.getElementById("book-page-slot").innerHTML="";
+  render();
+  document.body.classList.remove("book-mode");
+  document.getElementById("book-overlay").hidden=true;
+}
+document.addEventListener("keydown",e=>{
+  if(!document.body.classList.contains("book-mode")) return;
+  if(e.key==="Escape"){ bookClose(); return; }
+  const ae=document.activeElement;
+  const isEditing=ae && (ae.isContentEditable || ae.tagName==="INPUT" || ae.tagName==="TEXTAREA");
+  if(isEditing) return;
+  if(e.key==="ArrowRight") bookNav(1);
+  if(e.key==="ArrowLeft") bookNav(-1);
+});
+
 /* ---------- stats & synthesis ---------- */
 function allItems(){ return PLAN.flatMap(w=>w.items); }
 function updateStats(){
@@ -1016,6 +1170,14 @@ function renderMemoire(){
 /* ---------- controls ---------- */
 function initControls(){
   document.getElementById("print").onclick=()=>window.print();
+  document.getElementById("bookmode").onclick=()=>{
+    const items=allItems();
+    const target=items.find(it=>!isDone(it.id))||items[0];
+    bookOpen(target.id);
+  };
+  document.getElementById("book-close").onclick=bookClose;
+  document.getElementById("book-prev").onclick=()=>bookNav(-1);
+  document.getElementById("book-next").onclick=()=>bookNav(1);
   let expanded=false;
   const eb=document.getElementById("expand");
   eb.onclick=()=>{
