@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil de pensée — 4 quadrants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --porcelaine:#FAF6F2;--encre:#3A2B31;--encre-doux:#6A585F;
+    --rose:#C25E6E;--or:#B08D57;--trait:#E7DDD5;--carte:#fff;
+    --bleu:#4B7BA6;--vert:#6E9463;--rouge:#C25E6E;--jaune:#C9A24B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{background:var(--porcelaine);color:var(--encre);
+    font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;padding:0 22px 70px}
+  .wrap{max-width:600px;margin:0 auto}
+  .ecran{display:none}.ecran.actif{display:block}
+
+  header{padding:60px 0 34px;text-align:center}
+  .kicker{font-family:'Fraunces',serif;font-style:italic;color:var(--rose);font-size:17px;margin-bottom:12px}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(32px,9.5vw,50px);line-height:1.04;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--or)}
+  .intro{margin:22px auto 0;max-width:50ch;color:var(--encre-doux);font-size:16px}
+  .btn{display:inline-block;cursor:pointer;border:none;font-family:'Inter',sans-serif;
+    font-size:16px;font-weight:600;background:var(--encre);color:#fff;padding:15px 34px;
+    border-radius:999px;margin-top:26px;transition:transform .15s ease}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.ghost{background:transparent;color:var(--encre-doux);border:1px solid var(--trait);font-weight:500}
+  .consigne{margin-top:24px;font-size:13.5px;color:var(--encre-doux);max-width:46ch;margin:24px auto 0;line-height:1.6}
+  #reprise{margin-bottom:14px}
+
+  /* légende quadrants intro */
+  .leg{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:420px;margin:30px auto 0}
+  .leg div{background:var(--carte);border:1px solid var(--trait);border-radius:14px;padding:12px 14px;text-align:left;font-size:13px;line-height:1.4}
+  .leg b{display:block;font-size:13.5px;margin-bottom:2px}
+  .pastille{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+  /* Questions */
+  .qtop{padding:40px 0 8px}
+  .barre{height:5px;background:var(--trait);border-radius:99px;overflow:hidden}
+  .barre span{display:block;height:100%;background:var(--rose);width:0;transition:width .35s ease;border-radius:99px}
+  .compteur{font-size:13px;color:var(--encre-doux);margin-top:12px;font-weight:500}
+  .saved{font-size:12px;color:#8a9a78;margin-top:8px;font-weight:500}
+  .qtexte{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(24px,6.5vw,32px);line-height:1.25;margin:30px 0;min-height:2.4em}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{cursor:pointer;text-align:left;background:var(--carte);border:1px solid var(--trait);color:var(--encre);
+    font-family:'Inter',sans-serif;font-size:15.5px;font-weight:500;padding:15px 18px;border-radius:16px;
+    display:flex;align-items:center;gap:14px;transition:border-color .15s,background .15s,transform .1s}
+  .opt:hover{border-color:var(--rose);transform:translateX(2px)}
+  .opt .dot{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--trait);transition:all .15s}
+  .opt.sel{border-color:var(--rose);background:#FBEDEE}
+  .opt.sel .dot{background:var(--rose);border-color:var(--rose)}
+  .retour{margin-top:24px;background:none;border:none;color:var(--encre-doux);font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;padding:6px 0}
+  .retour:hover{color:var(--encre)}
+
+  /* Résultats */
+  .res-head{padding:52px 0 6px;text-align:center}
+  .res-head h1{font-size:clamp(30px,8vw,44px)}
+  .res-sous{color:var(--encre-doux);font-size:15.5px;margin-top:14px;max-width:46ch;margin:14px auto 0}
+
+  /* carte des quadrants */
+  .mapwrap{margin:34px 0 6px}
+  .axe-h{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.06em;color:var(--encre-doux);margin:0 4px 6px}
+  .mapgrid{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"A D" "B C";gap:8px}
+  .qd{border-radius:18px;padding:16px 15px;color:#fff;position:relative;overflow:hidden;min-height:120px;display:flex;flex-direction:column;justify-content:space-between}
+  .qd.A{grid-area:A;background:var(--bleu)}
+  .qd.B{grid-area:B;background:var(--vert)}
+  .qd.C{grid-area:C;background:var(--rouge)}
+  .qd.D{grid-area:D;background:var(--jaune)}
+  .qd .lettre{font-family:'Fraunces',serif;font-size:14px;opacity:.85}
+  .qd .titre{font-family:'Fraunces',serif;font-size:17px;font-weight:500;line-height:1.15;margin-top:2px}
+  .qd .val{font-family:'Fraunces',serif;font-size:34px;font-weight:500;line-height:1}
+  .qd .mini{font-size:11.5px;opacity:.9;margin-top:3px}
+  .qd.dom{box-shadow:0 0 0 3px var(--encre)}
+  .qd .crown{position:absolute;top:12px;right:14px;font-size:12px;font-family:'Fraunces',serif;font-style:italic;opacity:.95}
+  .axe-v{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.06em;color:var(--encre-doux);margin:8px 4px 0}
+
+  .lignes{margin-top:14px;font-size:13px;color:var(--encre-doux);text-align:center;line-height:1.7}
+
+  .qd-detail{padding:26px 0;border-top:1px solid var(--trait)}
+  .qd-detail .haut{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .qd-detail .nom{font-family:'Fraunces',serif;font-weight:500;font-size:21px}
+  .qd-detail .nom .tp{display:block;font-size:12.5px;color:var(--encre-doux);font-family:'Inter',sans-serif;font-style:normal;margin-top:2px}
+  .qd-detail .pc{font-family:'Fraunces',serif;font-size:24px;font-weight:500;flex:none}
+  .jauge{height:9px;background:var(--trait);border-radius:99px;overflow:hidden;margin:12px 0 10px}
+  .jauge span{display:block;height:100%;border-radius:99px;width:0;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .qd-detail p{font-size:15px;line-height:1.6}
+
+  .synthese{margin-top:18px;background:var(--carte);border:1px solid var(--trait);border-radius:24px;padding:34px 28px}
+  .synthese h2{font-family:'Fraunces',serif;font-weight:500;font-size:26px;margin-bottom:14px}
+  .synthese p{font-size:15px;line-height:1.65;margin-bottom:12px}.synthese p:last-child{margin-bottom:0}
+  .note{margin-top:26px;text-align:center;color:var(--encre-doux);font-size:13px;line-height:1.7;max-width:50ch;margin:26px auto 0}
+  .note em{font-family:'Fraunces',serif;font-style:italic}
+  .actions{margin-top:20px;display:flex;flex-direction:column;gap:12px;align-items:center}
+
+  /* Fiche */
+  .fiche-head{padding:52px 0 6px;text-align:center}
+  .fiche-head h1{font-size:clamp(28px,7.5vw,40px)}
+  .fiche-meta{color:var(--encre-doux);font-size:13.5px;margin-top:12px}
+  .fiche-scores{background:var(--carte);border:1px solid var(--trait);border-radius:20px;padding:20px 22px;margin:24px 0 6px;font-size:14.5px;line-height:1.95}
+  .fiche-scores .sc{color:var(--or);font-family:'Fraunces',serif;font-weight:500}
+  .fiche-grp{padding:24px 0 4px;border-top:1px solid var(--trait)}
+  .fiche-grp h3{font-family:'Fraunces',serif;font-weight:500;font-size:19px;margin-bottom:12px}
+  .fiche-item{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dotted var(--trait);font-size:14px;line-height:1.45}
+  .fiche-item:last-child{border-bottom:none}
+  .fiche-item .rep{flex:none;font-weight:600;color:var(--rose);text-align:right;max-width:40%}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--encre);color:#fff;font-size:14px;padding:11px 20px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9}
+  .toast.on{opacity:1}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media print{body{padding:0}.actions,.retour{display:none!important}.fiche-item .rep{color:#000}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- INTRO -->
+  <section id="intro" class="ecran actif">
+    <header>
+      <div class="kicker">comment tu penses</div>
+      <h1>Ton profil de <em>pensée</em></h1>
+      <p class="intro">Inspiré du modèle Whole Brain® (les quatre quadrants de Herrmann). 32 affirmations pour cartographier tes modes de pensée préférés.</p>
+    </header>
+    <div style="text-align:center">
+      <div id="reprise"></div>
+      <div id="startDefault">
+        <div class="leg">
+          <div><b><span class="pastille" style="background:var(--bleu)"></span>Bleu · Analytique</b>logique, faits, chiffres, raisonnement</div>
+          <div><b><span class="pastille" style="background:var(--jaune)"></span>Jaune · Créatif</b>vision globale, intuition, nouveauté</div>
+          <div><b><span class="pastille" style="background:var(--vert)"></span>Vert · Organisé</b>méthode, plan, détail, fiabilité</div>
+          <div><b><span class="pastille" style="background:var(--rouge)"></span>Rouge · Relationnel</b>émotions, gens, ressenti</div>
+        </div>
+        <button class="btn" onclick="demarrer()">Commencer</button>
+        <p class="consigne">Note à quel point chaque phrase te ressemble, spontanément. Ici on mesure des <em>préférences</em>, pas des compétences : aucune bonne réponse. Progression enregistrée automatiquement.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUESTIONS -->
+  <section id="quiz" class="ecran">
+    <div class="qtop">
+      <div class="barre"><span id="prog"></span></div>
+      <div class="compteur" id="compteur"></div>
+      <div class="saved">✓ Réponses enregistrées automatiquement</div>
+    </div>
+    <div class="qtexte" id="qtexte"></div>
+    <div class="opts" id="opts"></div>
+    <button class="retour" id="retour" onclick="precedent()">← Précédent</button>
+  </section>
+
+  <!-- RÉSULTATS -->
+  <section id="resultats" class="ecran">
+    <div class="res-head">
+      <div class="kicker">ta carte mentale</div>
+      <h1>Tes quatre <em>quadrants</em></h1>
+      <p class="res-sous">Où va ta pensée quand elle a le choix. Plus un quadrant est haut, plus c'est un réflexe naturel.</p>
+    </div>
+
+    <div class="mapwrap">
+      <div class="axe-h"><span>← cérébral (abstrait)</span></div>
+      <div class="mapgrid" id="mapgrid"></div>
+      <div class="axe-v"><span>cerveau gauche</span><span>cerveau droit</span></div>
+      <div class="axe-h" style="justify-content:flex-start;margin-top:6px"><span>limbique (concret) ↓</span></div>
+      <div class="lignes" id="lignes"></div>
+    </div>
+
+    <div id="details"></div>
+    <div class="synthese" id="synthese"></div>
+    <p class="note">Questionnaire <em>inspiré</em> du modèle Whole Brain® / HBDI® de Ned Herrmann. Ce n'est pas l'instrument officiel (propriétaire, passé avec un praticien certifié) : à lire comme une tendance indicative, pas un diagnostic.</p>
+    <div class="actions">
+      <button class="btn" onclick="ouvrirFiche()">Voir ma fiche de réponses</button>
+      <button class="btn ghost" onclick="recommencer()">Recommencer</button>
+    </div>
+  </section>
+
+  <!-- FICHE -->
+  <section id="fiche" class="ecran">
+    <div class="fiche-head">
+      <div class="kicker">ta trace</div>
+      <h1>Ma <em>fiche</em> de réponses</h1>
+      <div class="fiche-meta" id="fiche-date"></div>
+    </div>
+    <div class="fiche-scores" id="fiche-scores"></div>
+    <div id="fiche-detail"></div>
+    <div class="actions">
+      <button class="btn" onclick="copierFiche()">Copier ma fiche</button>
+      <button class="btn ghost" onclick="imprimerFiche()">Imprimer / PDF</button>
+      <button class="retour" onclick="show('resultats')">← Retour aux résultats</button>
+    </div>
+  </section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* q = quadrant */
+const Q = [
+  {q:'A',x:"J'aime analyser un problème avec logique, étape par étape."},
+  {q:'B',x:"J'aime planifier les choses à l'avance, dans le détail."},
+  {q:'C',x:"Je suis attentive aux émotions des autres."},
+  {q:'D',x:"J'aime imaginer des idées nouvelles et originales."},
+
+  {q:'A',x:"Les chiffres et les données me parlent plus que les impressions."},
+  {q:'B',x:"J'ai besoin d'ordre et de méthode pour bien fonctionner."},
+  {q:'C',x:"J'apprends mieux en échangeant et en discutant avec les autres."},
+  {q:'D',x:"Je vois d'abord la vision d'ensemble avant les détails."},
+
+  {q:'A',x:"J'aime comprendre en profondeur comment les choses fonctionnent."},
+  {q:'B',x:"Je suis à l'aise avec les procédures et les règles claires."},
+  {q:'C',x:"Les relations humaines passent avant les résultats, pour moi."},
+  {q:'D',x:"J'aime prendre des risques et sortir des sentiers battus."},
+
+  {q:'A',x:"Je me fie aux faits plutôt qu'à mon ressenti pour décider."},
+  {q:'B',x:"Je fais attention aux détails et je vérifie mon travail."},
+  {q:'C',x:"Je me fie souvent à mon intuition émotionnelle."},
+  {q:'D',x:"Je fais confiance à mon instinct pour saisir une opportunité."},
+
+  {q:'A',x:"J'aime les débats d'idées où il faut argumenter rationnellement."},
+  {q:'B',x:"J'aime terminer une tâche avant d'en commencer une autre."},
+  {q:'C',x:"J'aime aider, soutenir et accompagner les autres."},
+  {q:'D',x:"Je m'ennuie vite dans la routine : j'ai besoin de nouveauté."},
+
+  {q:'A',x:"Résoudre un problème technique ou logique me stimule."},
+  {q:'B',x:"Le respect des délais et des engagements compte beaucoup pour moi."},
+  {q:'C',x:"L'ambiance et l'harmonie d'un groupe me tiennent à cœur."},
+  {q:'D',x:"J'aime relier des idées qui n'ont a priori rien à voir."},
+
+  {q:'A',x:"Je cherche la cause précise d'un problème avant d'agir."},
+  {q:'B',x:"Je préfère une routine fiable à l'improvisation."},
+  {q:'C',x:"Je communique facilement mes émotions."},
+  {q:'D',x:"J'improvise volontiers plutôt que de suivre un plan."},
+
+  {q:'A',x:"J'aime évaluer les idées de façon objective et critique."},
+  {q:'B',x:"J'aime organiser, ranger et structurer mon environnement."},
+  {q:'C',x:"Je ressens les choses intensément."},
+  {q:'D',x:"J'aime rêver, spéculer, imaginer le futur."},
+];
+
+const LIKERT = ["Pas du tout","Un peu","Moyennement","Beaucoup","Tout à fait"];
+
+const META = {
+  A:{nom:"Analytique", surnom:"le logicien", coul:"bleu", c:"var(--bleu)", tag:"logique · faits · raisonnement"},
+  B:{nom:"Organisé", surnom:"l'organisatrice", coul:"vert", c:"var(--vert)", tag:"méthode · plan · détail"},
+  C:{nom:"Relationnel", surnom:"l'empathique", coul:"rouge", c:"var(--rouge)", tag:"émotions · gens · ressenti"},
+  D:{nom:"Créatif", surnom:"la visionnaire", coul:"jaune", c:"var(--jaune)", tag:"vision · intuition · nouveauté"},
+};
+
+const TXT = {
+  A:{haut:"Tu penses en logique et en faits. Analyser, comprendre les rouages, décider sur des données plutôt que sur des impressions : c'est un réflexe fort chez toi. Rationnelle et rigoureuse.",
+     moyen:"Tu mobilises la logique et les faits quand la situation l'exige, sans que ce soit ta porte d'entrée première.",
+     bas:"L'analyse froide, les chiffres et le raisonnement pur ne sont pas ton terrain de prédilection : tu abordes les choses autrement."},
+  B:{haut:"Tu aimes l'ordre, la méthode, les plans clairs. Tu avances par étapes, tu structures, tu sécurises. Un mode de pensée fiable et cadré.",
+     moyen:"Tu apprécies un cadre quand il t'aide, mais tu ne veux pas être enfermée dans les procédures. Structure à la carte.",
+     bas:"La planification détaillée et la routine te pèsent. Tu fonctionnes plus librement, quitte à improviser au fil de l'eau."},
+  C:{haut:"Tu penses avec le cœur autant qu'avec la tête. Attentive aux émotions et aux liens, tu intègres les gens et ton ressenti dans tes décisions. Un mode profondément humain.",
+     moyen:"Le relationnel compte pour toi, mais tu sais aussi mettre l'affect de côté quand il le faut.",
+     bas:"Tu gardes une certaine distance émotionnelle et tu ne laisses pas le relationnel piloter ta pensée."},
+  D:{haut:"Tu penses en grand, en images, en possibilités. Intuitive et inventive, tu saisis la vision d'ensemble, tu relies les idées et tu explores le neuf.",
+     moyen:"Tu as de vrais élans créatifs et intuitifs, surtout quand le sujet t'inspire.",
+     bas:"Tu préfères le concret et l'éprouvé aux spéculations et aux grands sauts dans l'inconnu."},
+};
+
+let idx=0, lastScores=null;
+const rep=new Array(Q.length).fill(null);
+const KEY='hbdi:v1';
+
+async function save(){try{if(window.storage)await window.storage.set(KEY,JSON.stringify({rep,idx}),false);}catch(e){}}
+async function load(){try{if(!window.storage)return null;const r=await window.storage.get(KEY,false);return r?JSON.parse(r.value):null;}catch(e){return null;}}
+async function clearSave(){try{if(window.storage)await window.storage.delete(KEY,false);}catch(e){}}
+
+window.addEventListener('load',init);
+async function init(){
+  const st=await load();
+  if(st&&Array.isArray(st.rep)&&st.rep.some(v=>v!=null)){
+    for(let i=0;i<st.rep.length&&i<rep.length;i++)rep[i]=st.rep[i];
+    const ans=rep.filter(v=>v!=null).length, done=rep.every(v=>v!=null);
+    document.getElementById('startDefault').style.display='none';
+    const box=document.getElementById('reprise');
+    if(done){
+      box.innerHTML='<button class="btn" onclick="voirResultats()">Voir mes résultats</button> <button class="btn ghost" onclick="recommencer()">Refaire le test</button><p class="consigne">Tes réponses sont enregistrées sur cet appareil.</p>';
+    }else{
+      box.innerHTML='<button class="btn" onclick="reprendre()">Reprendre ('+ans+' / '+Q.length+')</button><p class="consigne">Ta progression est enregistrée : reprends où tu t\'es arrêtée.</p>';
+    }
+  }
+}
+
+function demarrer(){show('quiz');idx=0;render();}
+function reprendre(){const i=rep.findIndex(v=>v==null);idx=i===-1?0:i;if(i===-1)finir();else{show('quiz');render();}}
+function voirResultats(){finir();}
+function recommencer(){rep.fill(null);idx=0;clearSave();document.getElementById('reprise').innerHTML='';document.getElementById('startDefault').style.display='';show('intro');}
+
+function show(id){document.querySelectorAll('.ecran').forEach(e=>e.classList.remove('actif'));document.getElementById(id).classList.add('actif');window.scrollTo({top:0});}
+
+function render(){
+  const q=Q[idx];
+  document.getElementById('qtexte').textContent=q.x;
+  document.getElementById('compteur').textContent="Question "+(idx+1)+" / "+Q.length;
+  document.getElementById('prog').style.width=(idx/Q.length*100)+"%";
+  document.getElementById('retour').style.visibility=idx===0?'hidden':'visible';
+  const box=document.getElementById('opts');box.innerHTML='';
+  LIKERT.forEach((label,i)=>{
+    const val=i+1;const b=document.createElement('button');
+    b.className='opt'+(rep[idx]===val?' sel':'');
+    b.innerHTML='<span class="dot"></span>'+label;
+    b.onclick=()=>choisir(val);box.appendChild(b);
+  });
+}
+function choisir(val){rep[idx]=val;save();document.getElementById('prog').style.width=((idx+1)/Q.length*100)+"%";
+  setTimeout(()=>{if(idx<Q.length-1){idx++;render();}else finir();},150);}
+function precedent(){if(idx>0){idx--;render();}}
+
+function finir(){
+  const sum={A:0,B:0,C:0,D:0},n={A:0,B:0,C:0,D:0};
+  Q.forEach((q,i)=>{sum[q.q]+=(rep[i]||3);n[q.q]++;});
+  const s={};Object.keys(sum).forEach(k=>{s[k]=Math.round((sum[k]-n[k])/(n[k]*4)*100);});
+  save();lastScores=s;renderRes(s);show('resultats');
+}
+function niveau(p){return p>=67?'préférence forte':(p<=33?'faible préférence':'préférence intermédiaire');}
+function cle(p){return p>=67?'haut':(p<=33?'bas':'moyen');}
+
+function renderRes(s){
+  const order=['A','B','C','D'];
+  const max=Math.max(...order.map(k=>s[k]));
+  // carte
+  const grid=document.getElementById('mapgrid');grid.innerHTML='';
+  order.forEach(k=>{
+    const m=META[k],p=s[k],dom=(p>=max-6);
+    const el=document.createElement('div');
+    el.className='qd '+k+(dom?' dom':'');
+    el.innerHTML=(dom?'<span class="crown">dominante</span>':'')+
+      '<div><div class="lettre">'+m.coul+'</div><div class="titre">'+m.nom+'</div></div>'+
+      '<div><div class="val">'+p+'</div><div class="mini">'+m.tag+'</div></div>';
+    grid.appendChild(el);
+  });
+  // lignes gauche/droite, haut/bas
+  const g=Math.round((s.A+s.B)/2), d=Math.round((s.C+s.D)/2);
+  const hab=Math.round((s.A+s.D)/2), lim=Math.round((s.B+s.C)/2);
+  document.getElementById('lignes').innerHTML=
+    'Gauche (rationnel) '+g+' · Droite (relationnel/créatif) '+d+' &nbsp;|&nbsp; Cérébral (abstrait) '+hab+' · Limbique (concret) '+lim;
+  // détails triés par score décroissant
+  const det=document.getElementById('details');det.innerHTML='';
+  [...order].sort((a,b)=>s[b]-s[a]).forEach(k=>{
+    const m=META[k],p=s[k];
+    const el=document.createElement('div');el.className='qd-detail';
+    el.innerHTML='<div class="haut"><div class="nom">'+m.coul+' · '+m.nom+'<span class="tp">« '+m.surnom+' » — '+niveau(p)+'</span></div><div class="pc" style="color:'+m.c+'">'+p+'</div></div>'+
+      '<div class="jauge"><span data-w="'+p+'" style="background:'+m.c+'"></span></div>'+
+      '<p>'+TXT[k][cle(p)]+'</p>';
+    det.appendChild(el);
+  });
+  requestAnimationFrame(()=>document.querySelectorAll('.jauge span').forEach(j=>j.style.width=j.dataset.w+'%'));
+  document.getElementById('synthese').innerHTML=synthese(s);
+}
+
+function synthese(s){
+  const order=['A','B','C','D'].sort((a,b)=>s[b]-s[a]);
+  const max=s[order[0]];
+  const dom=order.filter(k=>s[k]>=max-6).map(k=>META[k].coul+' ('+META[k].nom.toLowerCase()+')');
+  const faible=order[order.length-1];
+  const g=Math.round((s.A+s.B)/2), d=Math.round((s.C+s.D)/2);
+  const hab=Math.round((s.A+s.D)/2), lim=Math.round((s.B+s.C)/2);
+  let p1='Ta pensée penche d\'abord vers le <b>'+dom.join('</b> et le <b>')+'</b>.';
+  p1+=' À l\'inverse, le mode <b>'+META[faible].coul+' ('+META[faible].nom.toLowerCase()+')</b> est celui que tu sollicites le moins.';
+  let p2;
+  if(Math.abs(g-d)<=6) p2='Tu es plutôt équilibrée entre le cerveau gauche (rationnel, méthodique) et le cerveau droit (relationnel, créatif) : tu peux jongler selon les situations.';
+  else if(d>g) p2='Ton centre de gravité est à droite : tu abordes les choses par le relationnel et l\'intuition avant la logique et la procédure.';
+  else p2='Ton centre de gravité est à gauche : tu abordes les choses par la logique et la méthode avant l\'émotion et l\'intuition.';
+  let p3=(hab>lim)
+    ? 'Tu es davantage tirée vers l\'abstrait (idées, concepts, vision) que vers le concret (organisation, application).'
+    : (lim>hab ? 'Tu es davantage ancrée dans le concret (relations, organisation, application) que dans l\'abstrait pur.'
+              : 'Abstrait et concret s\'équilibrent chez toi.');
+  return '<h2>Ta signature</h2><p>'+p1+'</p><p>'+p2+' '+p3+'</p><p>Un profil n\'est pas une cage : tes quadrants les plus bas sont des muscles que tu peux entraîner quand une situation le demande.</p>';
+}
+
+/* Fiche */
+function ouvrirFiche(){if(!lastScores)return;renderFiche();show('fiche');}
+function renderFiche(){
+  document.getElementById('fiche-date').textContent='Établie le '+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  let sc='';['A','B','C','D'].forEach(k=>{sc+=META[k].coul+' · '+META[k].nom+' : <span class="sc">'+lastScores[k]+' / 100</span> — '+niveau(lastScores[k])+'<br>';});
+  document.getElementById('fiche-scores').innerHTML=sc;
+  let html='';['A','B','C','D'].forEach(k=>{
+    html+='<div class="fiche-grp"><h3>'+META[k].coul+' · '+META[k].nom+'</h3>';
+    Q.forEach((q,i)=>{if(q.q!==k)return;html+='<div class="fiche-item"><span>'+q.x+'</span><span class="rep">'+(rep[i]?LIKERT[rep[i]-1]:'—')+'</span></div>';});
+    html+='</div>';
+  });
+  document.getElementById('fiche-detail').innerHTML=html;
+}
+function ficheTexte(){
+  let t='MA FICHE — Profil de pensée (4 quadrants, inspiré Whole Brain/HBDI)\n'+new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})+'\n\nSCORES\n';
+  ['A','B','C','D'].forEach(k=>{t+='- '+META[k].coul+' · '+META[k].nom+' : '+lastScores[k]+'/100 ('+niveau(lastScores[k])+')\n';});
+  t+='\nRÉPONSES\n';
+  ['A','B','C','D'].forEach(k=>{t+='\n'+META[k].coul.toUpperCase()+' · '+META[k].nom.toUpperCase()+'\n';Q.forEach((q,i)=>{if(q.q!==k)return;t+='  • '+q.x+' → '+(rep[i]?LIKERT[rep[i]-1]:'—')+'\n';});});
+  return t;
+}
+function copierFiche(){const txt=ficheTexte();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Fiche copiée ✓')).catch(()=>fallbackCopy(txt));}else fallbackCopy(txt);}
+function fallbackCopy(txt){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Fiche copiée ✓');}catch(e){toast('Copie impossible — fais une capture');}document.body.removeChild(ta);}
+function imprimerFiche(){window.print();}
+let toastT=null;
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),2000);}
+</script>
+</body>
+</html>
